@@ -14,6 +14,9 @@ export default function Header() {
                     className={`${styles.hamburger} ${open ? styles.open : ""}`}
                     onClick={() => setOpen(!open)}
                     aria-label="Open menu">
+                    <span className={styles.bar}></span>
+                    <span className={styles.bar}></span>
+                    <span className={styles.bar}></span>
                 </button>
 
                 <h1 className={styles.logo}>World Cup 2026</h1>
