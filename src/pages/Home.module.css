@@ -42,3 +42,8 @@ main > section > img{
 	cursor: pointer;
 	transition: background-color 0.3s ease;
 }
+
+.btnDisabled {
+	background-color: var(--border);
+	cursor: not-allowed;
+}
