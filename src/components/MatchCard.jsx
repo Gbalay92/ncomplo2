@@ -46,11 +46,11 @@ export function MatchCard({ match }) {
           teamName={match.home_team} 
         />
 
-        <div>
+        <div className={styles.scoreContainer}>
           <span>{match.home_team.score}</span>
-					<input className={styles.scoreInput} type="text" />
+					<input className={styles.scoreInput} type="text" placeholder='0' />
           <span>:</span>
-					<input className={styles.scoreInput} type="text" />
+					<input className={styles.scoreInput} type="text" placeholder='0' />
           <span>{match.away_team.score}</span>
         </div>
 

@@ -15,10 +15,11 @@
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
   --border: rgba(255, 255, 255, 0.1);
-  --card-bg: #1e293b;
+  --card-bg: #13233d;
   --shadow: rgba(0, 0, 0, 0.3);
   --input-bg: #091c3a;
   --hsla-example: hsla(210, 100%, 56%, 1);
+  --selected: #0070f3;
 }
 
 
