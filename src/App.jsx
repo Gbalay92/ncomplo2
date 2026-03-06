@@ -5,6 +5,7 @@ import { Leaderboard } from './pages/Leaderboard.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import { Prediction } from './pages/Prediction.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
+import { Login } from './pages/Login.jsx'
 
 function App() {
 
@@ -15,6 +16,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/leaderBoard" element={<Leaderboard />} />
           <Route path="*" element={<NotFoundPage />} />
+          <Route path="/Login" element={<Login />} />
           <Route path="/prediction" element={
               <Prediction />
           } />

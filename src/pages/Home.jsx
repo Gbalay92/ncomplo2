@@ -1,6 +1,6 @@
 import { useRouter } from "../hooks/useRouter.jsx"
 import styles from './Home.module.css'
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx"
 
 export default function HomePage() {
     const { navigateTo } = useRouter()

@@ -1,10 +1,10 @@
-import { Link } from "./Link";
-import { useAuth } from "../context/AuthContext";
-import styles from "./Header.module.css";
-import { useState } from "react";
+import { Link } from "./Link"
+import { useAuth } from "../context/AuthContext"
+import styles from "./Header.module.css"
+import { useState } from "react"
 
 export default function Header() {
-    const { isLoggedIn, handleLogin, handleLogout } = useAuth();
+    const { isLoggedIn, handleLogin, handleLogout } = useAuth()
     const [open, setOpen] = useState(false)
 
     return (

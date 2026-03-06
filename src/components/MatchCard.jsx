@@ -35,7 +35,7 @@ export function MatchCard({ match }) {
     home_team, 
     away_team, 
     date,
-  } = match;
+  } = match
 
   return (
     <article className={styles.matchCard}>
@@ -65,7 +65,7 @@ export function MatchCard({ match }) {
         </div>
       </footer>
     </article>
-  );
-};
+  )
+}
 
-export default MatchCard;
+export default MatchCard
