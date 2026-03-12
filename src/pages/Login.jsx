@@ -16,9 +16,20 @@ export default function Login() {
                     <input className={styles.inputField} type="password" id="password" />
                 </div>
                 <button type="submit" 
-                className={styles.loginButton}
+                className={styles.loginPageButton}
                 onClick={logIn}>
                     Login</button>
+                    <div className={styles.registerPrompt}>
+                <div className={styles.registerPrompt}>
+                    <span>Don't have an account? </span>
+                    <button 
+                        type="button" 
+                        className={styles.loginPageButton}
+                        onClick={() => alert('Registration is currently unavailable.')}>
+                        Register here
+                    </button>
+                </div>
+            </div>
             </form>
         </div>
     )
