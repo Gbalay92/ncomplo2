@@ -1,15 +1,39 @@
 import { Link } from "./Link"
 import { useAuth } from "../context/AuthContext"
 import styles from "./Header.module.css"
-import { useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 export default function Header() {
     const { isLoggedIn, handleLogin, handleLogout } = useAuth()
     const [open, setOpen] = useState(false)
+    const headerRef = useRef(null)
+
+    const clickUserBtn = () => {
+        if (isLoggedIn) {
+            handleLogout()
+        } else {
+            handleLogin()
+        }
+        setOpen(false)
+    }
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (open && headerRef.current && !headerRef.current.contains(event.target)) {
+                setOpen(false)
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [open])
 
     return (
         <>
-            <header className={styles.header}>
+            <header  ref={headerRef} className={styles.header}>
                 <button
                     className={`${styles.hamburger} ${open ? styles.open : ""}`}
                     onClick={() => setOpen(!open)}
@@ -27,9 +51,7 @@ export default function Header() {
                     <Link onClick={() => setOpen(false)} href="./Leaderboard">Leaderboard</Link>
                     <Link onClick={() => setOpen(false)} href="./prediction">Prediction</Link>
                 </nav>
-                 <button className={styles.btnUser} onClick={
-                    isLoggedIn ? handleLogout : handleLogin
-                    }>
+                 <button className={styles.btnUser} onClick={clickUserBtn}>
                     <svg className={styles.iconUser} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
