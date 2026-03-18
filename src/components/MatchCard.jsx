@@ -34,7 +34,6 @@ export function MatchCard({ match }) {
   const { 
     home_team, 
     away_team, 
-    date,
   } = match
 
   return (
@@ -46,11 +45,11 @@ export function MatchCard({ match }) {
         />
 
         <div className={styles.scoreContainer}>
-          <span>{match.home_team.score}</span>
+          <span>{home_team.score}</span>
 					<input className={styles.scoreInput} type="text" placeholder='0' />
           <span>:</span>
 					<input className={styles.scoreInput} type="text" placeholder='0' />
-          <span>{match.away_team.score}</span>
+          <span>{away_team.score}</span>
         </div>
 
         <TeamDisplay 

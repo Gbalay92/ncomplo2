@@ -2,6 +2,7 @@ import { useRouter } from "../hooks/useRouter.jsx"
 import styles from './Home.module.css'
 import { useAuth } from "../context/AuthContext.jsx"
 import { Podium } from "../components/Podium.jsx"
+import MatchCard from "../components/MatchCard.jsx"
 
 export default function HomePage() {
     const { navigateTo } = useRouter()
@@ -28,7 +29,10 @@ export default function HomePage() {
                     { username: "Bob", points: 120 },
                     { username: "Charlie", points: 100 }
                 ]} />
-                
+                <article className={styles.nextMatchContainer}>
+                    <h2>Next Match</h2>
+                    <MatchCard match={{ home_team: "Team A", away_team: "Team B"}} />
+                </article>
             </section>
         </main>
     )

@@ -48,3 +48,25 @@ main > section > img{
 	cursor: not-allowed;
 	pointer-events: none;
 }
+
+.wingetsContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 2rem;
+	width: 100%;
+	padding: 2rem ;
+}
+
+.nextMatchContainer {
+	margin-top: 2rem;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+	h2 {
+		font-size: 1.25rem;
+		color: var(--text-secondary);
+	}
+}
