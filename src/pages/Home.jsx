@@ -44,12 +44,13 @@ export default function HomePage() {
 
             <section className={`${styles.wingetsContainer} ${!showPodium ? styles.fullWidth : ''}`}>
                 {showPodium && <Podium users={topThree} />}
-                {nextMatch && (
-                    <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>
-                        <h2>Next Match</h2>
-                        <MatchCard match={nextMatch} />
-                    </article>
-                )}
+                <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>
+                    <h2>Next Match</h2>
+                    {nextMatch
+                        ? <MatchCard match={nextMatch} />
+                        : <p className={styles.noMatch}>No upcoming matches scheduled</p>
+                    }
+                </article>
             </section>
         </main>
     )

@@ -71,6 +71,11 @@ main > section > img{
 	}
 }
 
+.noMatch {
+	color: #888;
+	font-size: 0.95rem;
+}
+
 .fullWidth {
 	justify-content: center;
 }
