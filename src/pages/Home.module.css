@@ -70,3 +70,13 @@ main > section > img{
 		color: var(--text-secondary);
 	}
 }
+
+.fullWidth {
+	justify-content: center;
+}
+
+.nextMatchFull {
+	width: 100%;
+	max-width: 100%;
+	margin-top: 0;
+}

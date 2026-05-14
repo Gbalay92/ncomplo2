@@ -1,14 +1,31 @@
+import { useState, useEffect } from 'react'
 import { useRouter } from "../hooks/useRouter.jsx"
 import styles from './Home.module.css'
 import { useAuth } from "../context/AuthContext.jsx"
 import { Podium } from "../components/Podium.jsx"
 import MatchCard from "../components/MatchCard.jsx"
+import { getLeaderboard } from '../api/leaderboard.js'
+import { getNextMatch } from '../api/matches.js'
 
 export default function HomePage() {
     const { navigateTo } = useRouter()
     const { isLoggedIn } = useAuth()
-    //TODO get prediction status to show button only when predictions are open or user has already made a prediction
-    console.log(isLoggedIn)
+    const [topThree, setTopThree] = useState([])
+    const [nextMatch, setNextMatch] = useState(null)
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            getLeaderboard()
+                .then(data => setTopThree(data.slice(0, 3)))
+                .catch(() => {})
+        }
+        getNextMatch()
+            .then(setNextMatch)
+            .catch(() => {})
+    }, [isLoggedIn])
+
+    const showPodium = isLoggedIn && topThree.length > 0
+
     return (
         <main>
             <section className={styles.presentationContainer}>
@@ -17,22 +34,22 @@ export default function HomePage() {
                     <h3>THE WORLD STAGE AWAITS</h3>
                     <h4>Predict winners, earn points and won prizes!</h4>
                     <span></span>
-                    <button className={isLoggedIn ? styles.predictionBtn : `${styles.predictionBtn} ${styles.btnDisabled}`} 
+                    <button
+                        className={isLoggedIn ? styles.predictionBtn : `${styles.predictionBtn} ${styles.btnDisabled}`}
                         onClick={() => navigateTo('/prediction')}>
-                            Start Predicting
-                        </button>
+                        Start Predicting
+                    </button>
                 </div>
             </section>
-            <section className={styles.wingetsContainer}>
-                <Podium users={[
-                    { username: "Alice", points: 150 },
-                    { username: "Bob", points: 120 },
-                    { username: "Charlie", points: 100 }
-                ]} />
-                <article className={styles.nextMatchContainer}>
-                    <h2>Next Match</h2>
-                    <MatchCard match={{ home_team: "Team A", away_team: "Team B"}} />
-                </article>
+
+            <section className={`${styles.wingetsContainer} ${!showPodium ? styles.fullWidth : ''}`}>
+                {showPodium && <Podium users={topThree} />}
+                {nextMatch && (
+                    <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>
+                        <h2>Next Match</h2>
+                        <MatchCard match={nextMatch} />
+                    </article>
+                )}
             </section>
         </main>
     )
