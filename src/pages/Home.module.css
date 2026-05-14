@@ -70,3 +70,18 @@ main > section > img{
 		color: var(--text-secondary);
 	}
 }
+
+.noMatch {
+	color: #888;
+	font-size: 0.95rem;
+}
+
+.fullWidth {
+	justify-content: center;
+}
+
+.nextMatchFull {
+	width: 100%;
+	max-width: 100%;
+	margin-top: 0;
+}

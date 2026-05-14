@@ -40,10 +40,8 @@ export function AuthProvider({ children }) {
     navigateTo('/login')
   }
 
-  if (loading) return null
-
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, logIn, register, handleLogin, handleLogout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, loading, logIn, register, handleLogin, handleLogout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -59,6 +59,12 @@
     background: #cd7f32; /* Bronce */
 }
 
+.empty {
+    color: #888;
+    font-size: 1rem;
+    margin-top: 2rem;
+}
+
 .avatarCircle {
     width: 40px;
     height: 40px;
