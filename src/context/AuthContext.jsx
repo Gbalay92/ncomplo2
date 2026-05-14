@@ -1,37 +1,56 @@
-import { createContext, useState, useContext } from "react"
-import { useRouter } from "../hooks/useRouter"
+import { createContext, useState, useContext, useEffect } from 'react'
+import { useRouter } from '../hooks/useRouter'
+import { login as apiLogin, logout as apiLogout, register as apiRegister, getMe } from '../api/auth.js'
 
 export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
-    const { navigateTo } = useRouter()
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const { navigateTo } = useRouter()
 
-    const handleLogin = () => {
-        isLoggedIn ? handleLogout() : navigateTo("./Login")
-    }
+  // Restore session on mount
+  useEffect(() => {
+    getMe()
+      .then(setUser)
+      .finally(() => setLoading(false))
+  }, [])
 
-    const logIn = (e) => {
-        e.preventDefault()
-        setIsLoggedIn(true)
-    }
+  const isLoggedIn = user !== null
 
-    const handleLogout = () => {
-        setIsLoggedIn(false)
-    }
+  async function logIn(email, password) {
+    const userData = await apiLogin(email, password)
+    setUser(userData)
+    navigateTo('/')
+  }
 
-    return (
-        <AuthContext.Provider value={{ isLoggedIn, logIn, handleLogin, handleLogout }}>
-            {children}
-        </AuthContext.Provider>
-    )
+  async function register(email, firstName, lastName, displayName, password) {
+    const userData = await apiRegister(email, firstName, lastName, displayName, password)
+    setUser(userData)
+    navigateTo('/')
+  }
+
+  async function handleLogout() {
+    await apiLogout()
+    setUser(null)
+    navigateTo('/')
+  }
+
+  function handleLogin() {
+    navigateTo('/login')
+  }
+
+  if (loading) return null
+
+  return (
+    <AuthContext.Provider value={{ user, isLoggedIn, logIn, register, handleLogin, handleLogout }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
-    const context = useContext(AuthContext)
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider")
-    } else {
-        return context
-    }
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth must be used within an AuthProvider')
+  return context
 }

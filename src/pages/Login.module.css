@@ -10,6 +10,25 @@
 }
 
 
+.cardTitle {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.errorBanner {
+    background: #4a0d0d;
+    border: 1px solid #f87171;
+    color: #f87171;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
 .loginCard {
     width: 24rem;
     padding: 32px;

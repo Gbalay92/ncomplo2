@@ -74,6 +74,23 @@
     margin-top: 4px;
 }
 
+.errorBanner {
+    background: #4a0d0d;
+    border: 1px solid #f87171;
+    color: #f87171;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.hint {
+    font-size: 0.78rem;
+    color: #888;
+    font-weight: 400;
+}
+
 .successBanner {
     background: #0d4a2f;
     border: 1px solid #34d399;
