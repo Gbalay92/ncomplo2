@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header.jsx'
 import { useRouter } from './hooks/useRouter.jsx'
+import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 
 const HomePage = lazy(() => import('./pages/Home.jsx'))
 const LeaderboardPage = lazy(() => import('./pages/Leaderboard.jsx'))
@@ -18,7 +19,7 @@ function App() {
         <Header  />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
           <Route path="/login" element={<LoginPage onNavigateToRegister={() => navigateTo('/register')} />} />
           <Route path="/prediction" element={
