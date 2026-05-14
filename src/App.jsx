@@ -22,9 +22,7 @@ function App() {
           <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
           <Route path="/login" element={<LoginPage onNavigateToRegister={() => navigateTo('/register')} />} />
-          <Route path="/prediction" element={
-              <PredictionPage />
-          } />
+          <Route path="/prediction" element={<ProtectedRoute><PredictionPage /></ProtectedRoute>} />
           <Route path="/register" element={<RegisterPage onNavigateToLogin={() => navigateTo('/login')} />} />
         </Routes>
       </>
