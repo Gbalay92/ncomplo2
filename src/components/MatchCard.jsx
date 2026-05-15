@@ -18,7 +18,7 @@ function TeamDisplay({ teamName, flagUrl }) {
 function formatMatchDate(dateStr) {
   const date = new Date(dateStr)
   const datePart = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
-  const timePart = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  const timePart = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
   return { datePart, timePart }
 }
 
