@@ -108,3 +108,7 @@
     color: var(--text-muted);
 }
 
+.matchCardIncomplete {
+    border-color: #e53935;
+}
+

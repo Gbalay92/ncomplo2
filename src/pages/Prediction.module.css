@@ -1,3 +1,10 @@
+.saveError {
+    font-size: 0.85rem;
+    color: #e53935;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
 .saveBar {
     position: sticky;
     bottom: 0;

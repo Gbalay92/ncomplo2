@@ -4,11 +4,16 @@ import { getMatches } from "../api/matches.js"
 import { getMyPredictions, savePredictions } from "../api/predictions.js"
 import styles from './Prediction.module.css'
 
+function isFilled(v) {
+    return v && v.home !== '' && v.away !== '' && !isNaN(parseInt(v.home, 10)) && !isNaN(parseInt(v.away, 10))
+}
+
 export default function Prediction() {
     const [groupedMatches, setGroupedMatches] = useState(null)
     const [values, setValues] = useState({})
     const [saveStatus, setSaveStatus] = useState(null) // 'saving' | 'saved' | 'error'
-    const [error, setError] = useState(null)
+    const [incompleteIds, setIncompleteIds] = useState(new Set())
+    const [loadError, setLoadError] = useState(null)
 
     useEffect(() => {
         Promise.all([getMatches(null, 'group'), getMyPredictions()])
@@ -27,7 +32,7 @@ export default function Prediction() {
                 }
                 setValues(initial)
             })
-            .catch(() => setError('Failed to load data'))
+            .catch(() => setLoadError('Failed to load data'))
     }, [])
 
     function handleChange(matchId, home, away) {
@@ -35,16 +40,22 @@ export default function Prediction() {
     }
 
     async function handleSave() {
-        const payload = Object.entries(values)
-            .filter(([, v]) => v.home !== '' && v.away !== '')
-            .map(([matchId, v]) => ({
-                match_id: Number(matchId),
-                pred_home_goals: parseInt(v.home, 10),
-                pred_away_goals: parseInt(v.away, 10),
-            }))
-            .filter(p => !isNaN(p.pred_home_goals) && !isNaN(p.pred_away_goals))
+        setIncompleteIds(new Set())
+        setSaveStatus(null)
 
-        if (!payload.length) return
+        const allMatches = Object.values(groupedMatches).flat()
+        const missing = new Set(allMatches.filter(m => !isFilled(values[m.id])).map(m => m.id))
+
+        if (missing.size > 0) {
+            setIncompleteIds(missing)
+            return
+        }
+
+        const payload = allMatches.map(m => ({
+            match_id: m.id,
+            pred_home_goals: parseInt(values[m.id].home, 10),
+            pred_away_goals: parseInt(values[m.id].away, 10),
+        }))
 
         setSaveStatus('saving')
         try {
@@ -56,7 +67,7 @@ export default function Prediction() {
         }
     }
 
-    if (error) return <p>{error}</p>
+    if (loadError) return <p>{loadError}</p>
     if (!groupedMatches) return <p>Loading...</p>
 
     return (
@@ -66,8 +77,12 @@ export default function Prediction() {
                 data={{ matches: groupedMatches }}
                 values={values}
                 onChange={handleChange}
+                incompleteIds={incompleteIds}
             />
             <div className={styles.saveBar}>
+                {incompleteIds.size > 0 && (
+                    <p className={styles.saveError}>Fill in all matches before saving</p>
+                )}
                 <button className={styles.saveBtn} onClick={handleSave} disabled={saveStatus === 'saving'}>
                     {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? '✓ Saved' : saveStatus === 'error' ? 'Error — retry' : 'Save predictions'}
                 </button>
