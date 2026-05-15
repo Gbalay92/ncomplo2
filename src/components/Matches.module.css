@@ -64,11 +64,8 @@
     & .flagContainer{
         width: 3rem;
         height: 2.5rem;
-        background-color: aliceblue;
-        border-radius: 50%;
-        align-items: center;
-        text-align: center;
         display: flex;
+        align-items: center;
         justify-content: center;
     }
 }
