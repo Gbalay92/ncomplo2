@@ -9,6 +9,7 @@ export default function Admin() {
     const [groupedMatches, setGroupedMatches] = useState(null)
     const [activeGroup, setActiveGroup] = useState(null)
     const [savedResults, setSavedResults] = useState({})
+    const [expandedId, setExpandedId] = useState(null)
     const [lockStatus, setLockStatus] = useState(null)
     const [lockError, setLockError] = useState(null)
     const [loadError, setLoadError] = useState(null)
@@ -85,6 +86,8 @@ export default function Admin() {
                         <AdminMatchCard
                             key={match.id}
                             match={match}
+                            isExpanded={expandedId === match.id}
+                            onToggle={() => setExpandedId(prev => prev === match.id ? null : match.id)}
                             onSave={handleSave}
                         />
                     ))}

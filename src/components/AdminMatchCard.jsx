@@ -1,91 +1,107 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styles from './AdminMatchCard.module.css'
-import matchStyles from './Matches.module.css'
 
-function TeamDisplay({ teamName, flagUrl }) {
+function TeamDisplay({ teamName, flagUrl, size = 'sm' }) {
   return (
-    <div className={matchStyles.countryDisplay}>
-      <article className={matchStyles.flagContainer}>
-        <img src={flagUrl} width="40" alt={teamName} />
-      </article>
+    <div className={`${styles.team} ${size === 'lg' ? styles.teamLg : ''}`}>
+      <img src={flagUrl} width={size === 'lg' ? 48 : 32} alt={teamName} />
       <span>{teamName}</span>
     </div>
   )
 }
 
-function formatMatchDate(dateStr) {
-  const date = new Date(dateStr)
-  const datePart = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
-  const timePart = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
-  return { datePart, timePart }
-}
+export function AdminMatchCard({ match, isExpanded, onToggle, onSave }) {
+  const hasResult = match.real_home_goals != null
 
-export function AdminMatchCard({ match, onSave }) {
-  const { datePart, timePart } = match.match_date ? formatMatchDate(match.match_date) : {}
+  const [home, setHome] = useState(hasResult ? String(match.real_home_goals) : '')
+  const [away, setAway] = useState(hasResult ? String(match.real_away_goals) : '')
+  const [displayHome, setDisplayHome] = useState(hasResult ? match.real_home_goals : null)
+  const [displayAway, setDisplayAway] = useState(hasResult ? match.real_away_goals : null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
 
-  const [home, setHome] = useState(match.real_home_goals ?? '')
-  const [away, setAway] = useState(match.real_away_goals ?? '')
-  const [status, setStatus] = useState(match.real_home_goals != null ? 'saved' : null)
+  useEffect(() => {
+    if (!isExpanded) setError(null)
+  }, [isExpanded])
 
-  async function handleBlur() {
-    if (home === '' || away === '') return
+  async function handleSave() {
     const h = parseInt(home, 10)
     const a = parseInt(away, 10)
-    if (isNaN(h) || isNaN(a)) return
-    if (h === match.real_home_goals && a === match.real_away_goals) return
+    if (isNaN(h) || isNaN(a) || home === '' || away === '') {
+      setError('Both scores are required')
+      return
+    }
 
-    setStatus('saving')
+    setSaving(true)
+    setError(null)
     try {
       await onSave(match.id, h, a)
-      setStatus('saved')
+      setDisplayHome(h)
+      setDisplayAway(a)
+      onToggle()
     } catch {
-      setStatus('error')
+      setError('Error saving, try again')
+    } finally {
+      setSaving(false)
     }
   }
 
+  const isSaved = displayHome !== null
+
   return (
-    <article className={`${styles.adminMatchCard} ${status === 'saved' ? styles.confirmed : ''}`}>
-      <section className={matchStyles.matchInfo}>
+    <article
+      className={`${styles.card} ${isSaved ? styles.saved : ''} ${isExpanded ? styles.expanded : ''}`}
+      onClick={!isExpanded ? onToggle : undefined}
+    >
+      <div className={styles.compact}>
         <TeamDisplay teamName={match.home_team} flagUrl={match.home_flag} />
-
-        <div className={matchStyles.scoreContainer}>
-          <input
-            className={matchStyles.scoreInput}
-            type="number"
-            min="0"
-            max="20"
-            placeholder="0"
-            value={home}
-            onChange={e => setHome(e.target.value)}
-            onBlur={handleBlur}
-          />
-          <span className={matchStyles.scoreSep}>:</span>
-          <input
-            className={matchStyles.scoreInput}
-            type="number"
-            min="0"
-            max="20"
-            placeholder="0"
-            value={away}
-            onChange={e => setAway(e.target.value)}
-            onBlur={handleBlur}
-          />
+        <div className={styles.score}>
+          <span>{displayHome !== null ? displayHome : '–'}</span>
+          <span className={styles.sep}>:</span>
+          <span>{displayAway !== null ? displayAway : '–'}</span>
         </div>
-
         <TeamDisplay teamName={match.away_team} flagUrl={match.away_flag} />
-      </section>
+      </div>
 
-      <footer className={matchStyles.matchFooter}>
-        {match.match_date && (
-          <>
-            <span>{datePart}</span>
-            <span className={matchStyles.matchTime}>{timePart}</span>
-          </>
-        )}
-        {status === 'saving' && <span className={styles.statusSaving}>saving…</span>}
-        {status === 'saved' && <span className={styles.statusSaved}>✓</span>}
-        {status === 'error' && <span className={styles.statusError}>error</span>}
-      </footer>
+      {isExpanded && (
+        <div className={styles.expandedArea} onClick={e => e.stopPropagation()}>
+          <div className={styles.inputRow}>
+            <TeamDisplay teamName={match.home_team} flagUrl={match.home_flag} size="lg" />
+            <div className={styles.inputs}>
+              <input
+                className={styles.scoreInput}
+                type="number"
+                min="0"
+                max="20"
+                placeholder="0"
+                value={home}
+                autoFocus
+                onChange={e => setHome(e.target.value)}
+              />
+              <span className={styles.sep}>:</span>
+              <input
+                className={styles.scoreInput}
+                type="number"
+                min="0"
+                max="20"
+                placeholder="0"
+                value={away}
+                onChange={e => setAway(e.target.value)}
+              />
+            </div>
+            <TeamDisplay teamName={match.away_team} flagUrl={match.away_flag} size="lg" />
+          </div>
+
+          {error && <p className={styles.error}>{error}</p>}
+
+          <div className={styles.actions}>
+            <button className={styles.cancelBtn} onClick={onToggle} disabled={saving}>Cancel</button>
+            <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
+      )}
     </article>
   )
 }
