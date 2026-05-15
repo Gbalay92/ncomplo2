@@ -1,0 +1,34 @@
+.adminMatchCard {
+    background-color: var(--card-bg);
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 100%;
+    box-shadow: 0 2px 4px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 0.2rem solid var(--border);
+    transition: border-color 0.3s ease;
+}
+
+.confirmed {
+    border-color: #4caf50;
+}
+
+.statusSaving {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.statusSaved {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #4caf50;
+}
+
+.statusError {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #f44336;
+}
