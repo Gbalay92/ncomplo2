@@ -1,68 +1,63 @@
 import styles from './Matches.module.css'
-import { useEffect, useState } from 'react'
-import countryCodes from '../countries.json'
 
-function TeamDisplay({ teamName, score }) {
-  const [flagCode, setFlagCode] = useState('aq')
-  
-	useEffect(() => {
-    const code = countryCodes[teamName]
-    if (code) {
-      setFlagCode(code)
-    } else {
-      console.warn(`No se encontró el código de país para ${teamName}`)
-    }
-  }, [teamName])
-	
-
-	return (
-		<div className={styles.countryDisplay}>
-			<article className={styles.flagContainer}>
-			<img src={`https://flagcdn.com/16x12/${flagCode}.png`}
-					srcSet={`https://flagcdn.com/32x24/${flagCode}.png 2x,
-						https://flagcdn.com/48x36/${flagCode}.png 3x`}
-					width="16"
-					height="12" 
-					alt={`Bandera de ${teamName}`}/>
-				</article>
-			<span>{teamName}</span>
-		</div>
-		)
+function TeamDisplay({ teamName, flagUrl }) {
+  return (
+    <div className={styles.countryDisplay}>
+      <article className={styles.flagContainer}>
+        <img
+          src={flagUrl}
+          width="40"
+          alt={teamName}
+        />
+      </article>
+      <span>{teamName}</span>
+    </div>
+  )
 }
 
-export function MatchCard({ match }) {
-  const { 
-    home_team, 
-    away_team, 
-  } = match
+function formatMatchDate(dateStr) {
+  const date = new Date(dateStr)
+  const datePart = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+  const timePart = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
+  return { datePart, timePart }
+}
+
+export function MatchCard({ match, readOnly = false }) {
+  const { datePart, timePart } = match.match_date ? formatMatchDate(match.match_date) : {}
+
+  const homeScore = match.real_home_goals ?? null
+  const awayScore = match.real_away_goals ?? null
 
   return (
     <article className={styles.matchCard}>
-
       <section className={styles.matchInfo}>
-        <TeamDisplay 
-          teamName={match.home_team} 
-        />
+        <TeamDisplay teamName={match.home_team} flagUrl={match.home_flag} />
 
         <div className={styles.scoreContainer}>
-          <span>{home_team.score}</span>
-					<input className={styles.scoreInput} type="text" placeholder='0' />
-          <span>:</span>
-					<input className={styles.scoreInput} type="text" placeholder='0' />
-          <span>{away_team.score}</span>
+          {readOnly ? (
+            <>
+              <span className={styles.scoreText}>{homeScore !== null ? homeScore : '–'}</span>
+              <span className={styles.scoreSep}>:</span>
+              <span className={styles.scoreText}>{awayScore !== null ? awayScore : '–'}</span>
+            </>
+          ) : (
+            <>
+              <input className={styles.scoreInput} type="text" placeholder='0' />
+              <span>:</span>
+              <input className={styles.scoreInput} type="text" placeholder='0' />
+            </>
+          )}
         </div>
 
-        <TeamDisplay 
-          teamName={match.away_team} 
-        />
+        <TeamDisplay teamName={match.away_team} flagUrl={match.away_flag} />
       </section>
 
-      {/* Footer: Detalles de tiempo y lugar */}
-      <footer>
-        <div>
-          <time>{match.date}</time>
-        </div>
-      </footer>
+      {match.match_date && (
+        <footer className={styles.matchFooter}>
+          <span>{datePart}</span>
+          <span className={styles.matchTime}>{timePart}</span>
+        </footer>
+      )}
     </article>
   )
 }

@@ -47,7 +47,7 @@ export default function HomePage() {
                 <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>
                     <h2>Next Match</h2>
                     {nextMatch
-                        ? <MatchCard match={nextMatch} />
+                        ? <MatchCard match={nextMatch} readOnly />
                         : <p className={styles.noMatch}>No upcoming matches scheduled</p>
                     }
                 </article>
