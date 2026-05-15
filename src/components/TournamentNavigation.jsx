@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { MatchesContainer } from './MatchesContainer'
 import styles from './TournamentNavigation.module.css'
 
-export function TournamentNavigation({ data, predictions = {}, onSave }) {
+export function TournamentNavigation({ data, values = {}, onChange }) {
   const groupNames = Object.keys(data.matches)
   const [activeGroup, setActiveGroup] = useState(groupNames[0])
   const currentMatches = data.matches[activeGroup]
@@ -20,7 +20,7 @@ export function TournamentNavigation({ data, predictions = {}, onSave }) {
           </button>
         ))}
       </nav>
-      <MatchesContainer matches={currentMatches} predictions={predictions} onSave={onSave} />
+      <MatchesContainer matches={currentMatches} values={values} onChange={onChange} />
     </div>
   )
 }

@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import styles from './Matches.module.css'
 
 function TeamDisplay({ teamName, flagUrl }) {
@@ -19,51 +18,11 @@ function formatMatchDate(dateStr) {
   return { datePart, timePart }
 }
 
-function ScoreInput({ value, onChange, onBlur }) {
-  return (
-    <input
-      className={styles.scoreInput}
-      type="number"
-      min="0"
-      max="20"
-      placeholder="0"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      onBlur={onBlur}
-    />
-  )
-}
-
-export function MatchCard({ match, readOnly = false, prediction, onSave }) {
+export function MatchCard({ match, readOnly = false, value, onChange }) {
   const { datePart, timePart } = match.match_date ? formatMatchDate(match.match_date) : {}
 
-  const [home, setHome] = useState(prediction?.home ?? '')
-  const [away, setAway] = useState(prediction?.away ?? '')
-  const [status, setStatus] = useState(null) // 'saving' | 'saved' | 'error'
-
-  useEffect(() => {
-    setHome(prediction?.home ?? '')
-    setAway(prediction?.away ?? '')
-  }, [prediction])
-
-  async function handleBlur() {
-    if (home === '' || away === '') return
-    const h = parseInt(home, 10)
-    const a = parseInt(away, 10)
-    if (isNaN(h) || isNaN(a)) return
-
-    const prev = prediction
-    if (prev && prev.home === h && prev.away === a) return
-
-    setStatus('saving')
-    try {
-      await onSave(match.id, h, a)
-      setStatus('saved')
-      setTimeout(() => setStatus(null), 2000)
-    } catch {
-      setStatus('error')
-    }
-  }
+  const home = value?.home ?? ''
+  const away = value?.away ?? ''
 
   const homeScore = match.real_home_goals ?? null
   const awayScore = match.real_away_goals ?? null
@@ -82,9 +41,25 @@ export function MatchCard({ match, readOnly = false, prediction, onSave }) {
             </>
           ) : (
             <>
-              <ScoreInput value={home} onChange={setHome} onBlur={handleBlur} />
+              <input
+                className={styles.scoreInput}
+                type="number"
+                min="0"
+                max="20"
+                placeholder="0"
+                value={home}
+                onChange={e => onChange(match.id, e.target.value, away)}
+              />
               <span className={styles.scoreSep}>:</span>
-              <ScoreInput value={away} onChange={setAway} onBlur={handleBlur} />
+              <input
+                className={styles.scoreInput}
+                type="number"
+                min="0"
+                max="20"
+                placeholder="0"
+                value={away}
+                onChange={e => onChange(match.id, home, e.target.value)}
+              />
             </>
           )}
         </div>
@@ -92,17 +67,12 @@ export function MatchCard({ match, readOnly = false, prediction, onSave }) {
         <TeamDisplay teamName={match.away_team} flagUrl={match.away_flag} />
       </section>
 
-      <footer className={styles.matchFooter}>
-        {match.match_date && (
-          <>
-            <span>{datePart}</span>
-            <span className={styles.matchTime}>{timePart}</span>
-          </>
-        )}
-        {status === 'saving' && <span className={styles.statusSaving}>saving…</span>}
-        {status === 'saved' && <span className={styles.statusSaved}>✓ saved</span>}
-        {status === 'error' && <span className={styles.statusError}>error saving</span>}
-      </footer>
+      {match.match_date && (
+        <footer className={styles.matchFooter}>
+          <span>{datePart}</span>
+          <span className={styles.matchTime}>{timePart}</span>
+        </footer>
+      )}
     </article>
   )
 }

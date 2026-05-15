@@ -6,12 +6,8 @@ export async function getMyPredictions() {
   return res.json()
 }
 
-export async function savePrediction(matchId, predHomeGoals, predAwayGoals) {
-  const res = await put('/predictions', {
-    match_id: matchId,
-    pred_home_goals: predHomeGoals,
-    pred_away_goals: predAwayGoals,
-  })
-  if (!res.ok) throw new Error('Failed to save prediction')
+export async function savePredictions(predictions) {
+  const res = await put('/predictions/bulk', { predictions })
+  if (!res.ok) throw new Error('Failed to save predictions')
   return res.json()
 }

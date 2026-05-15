@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react"
 import { TournamentNavigation } from "../components/TournamentNavigation"
 import { getMatches } from "../api/matches.js"
-import { getMyPredictions, savePrediction } from "../api/predictions.js"
+import { getMyPredictions, savePredictions } from "../api/predictions.js"
+import styles from './Prediction.module.css'
 
 export default function Prediction() {
     const [groupedMatches, setGroupedMatches] = useState(null)
-    const [predictions, setPredictions] = useState({})
+    const [values, setValues] = useState({})
+    const [saveStatus, setSaveStatus] = useState(null) // 'saving' | 'saved' | 'error'
     const [error, setError] = useState(null)
 
     useEffect(() => {
@@ -19,18 +21,39 @@ export default function Prediction() {
                 }
                 setGroupedMatches(grouped)
 
-                const predMap = {}
+                const initial = {}
                 for (const p of preds) {
-                    predMap[p.match_id] = { home: p.pred_home_goals, away: p.pred_away_goals }
+                    initial[p.match_id] = { home: String(p.pred_home_goals), away: String(p.pred_away_goals) }
                 }
-                setPredictions(predMap)
+                setValues(initial)
             })
             .catch(() => setError('Failed to load data'))
     }, [])
 
-    async function handleSave(matchId, home, away) {
-        await savePrediction(matchId, home, away)
-        setPredictions(prev => ({ ...prev, [matchId]: { home, away } }))
+    function handleChange(matchId, home, away) {
+        setValues(prev => ({ ...prev, [matchId]: { home, away } }))
+    }
+
+    async function handleSave() {
+        const payload = Object.entries(values)
+            .filter(([, v]) => v.home !== '' && v.away !== '')
+            .map(([matchId, v]) => ({
+                match_id: Number(matchId),
+                pred_home_goals: parseInt(v.home, 10),
+                pred_away_goals: parseInt(v.away, 10),
+            }))
+            .filter(p => !isNaN(p.pred_home_goals) && !isNaN(p.pred_away_goals))
+
+        if (!payload.length) return
+
+        setSaveStatus('saving')
+        try {
+            await savePredictions(payload)
+            setSaveStatus('saved')
+            setTimeout(() => setSaveStatus(null), 2000)
+        } catch {
+            setSaveStatus('error')
+        }
     }
 
     if (error) return <p>{error}</p>
@@ -41,9 +64,14 @@ export default function Prediction() {
             <h1>Prediction Page</h1>
             <TournamentNavigation
                 data={{ matches: groupedMatches }}
-                predictions={predictions}
-                onSave={handleSave}
+                values={values}
+                onChange={handleChange}
             />
+            <div className={styles.saveBar}>
+                <button className={styles.saveBtn} onClick={handleSave} disabled={saveStatus === 'saving'}>
+                    {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? '✓ Saved' : saveStatus === 'error' ? 'Error — retry' : 'Save predictions'}
+                </button>
+            </div>
         </>
     )
 }
