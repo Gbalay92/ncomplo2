@@ -22,4 +22,9 @@
 &.active {
     background-color: var(--selected);
   }
+
+  &.incomplete {
+    border-color: #e53935;
+    color: #e53935;
+  }
 }

@@ -34,6 +34,14 @@
     border-radius: 4px;
     background-color: var(--input-bg);
     color: var(--text-primary);
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.scoreInput::-webkit-outer-spin-button,
+.scoreInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .scoreInput:not(:placeholder-shown) {
@@ -43,6 +51,10 @@
 
 .scoreInput:focus {
   border: 0;
+}
+
+.scoreInput:focus::placeholder {
+  color: transparent;
 }
 
 .scoreContainer {
@@ -99,3 +111,8 @@
     font-size: 1.2rem;
     color: var(--text-muted);
 }
+
+.matchCardIncomplete {
+    border-color: #e53935;
+}
+
