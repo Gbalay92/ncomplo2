@@ -1,0 +1,157 @@
+.card {
+    background-color: var(--card-bg);
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    box-shadow: 0 2px 4px var(--shadow);
+    border: 0.2rem solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover:not(.expanded) {
+    border-color: var(--primary-light);
+    box-shadow: 0 4px 8px var(--shadow);
+}
+
+.saved {
+    border-color: #4caf50;
+}
+
+.expanded {
+    cursor: default;
+    border-color: var(--primary-light);
+}
+
+.compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    width: 35%;
+    font-size: 0.8rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.teamLg {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.score {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 4rem;
+    justify-content: center;
+}
+
+.sep {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.expandedArea {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.inputRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.scoreInput {
+    width: 3rem;
+    height: 2.5rem;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border: 0.2rem solid var(--border);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    -moz-appearance: textfield;
+}
+
+.scoreInput::-webkit-outer-spin-button,
+.scoreInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.scoreInput:focus {
+    outline: none;
+    border-color: var(--primary-light);
+}
+
+.scoreInput:focus::placeholder {
+    color: transparent;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.cancelBtn {
+    padding: 0.5rem 1.25rem;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.cancelBtn:hover {
+    border-color: var(--text-secondary);
+}
+
+.saveBtn {
+    padding: 0.5rem 1.25rem;
+    background-color: var(--primary-light);
+    border: none;
+    border-radius: 2rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.saveBtn:disabled, .cancelBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.error {
+    font-size: 0.8rem;
+    color: #f44336;
+    text-align: center;
+}
