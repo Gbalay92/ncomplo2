@@ -53,6 +53,10 @@
   border: 0;
 }
 
+.scoreInput:focus::placeholder {
+  color: transparent;
+}
+
 .scoreContainer {
     display: flex;
     gap: 0.5rem;
