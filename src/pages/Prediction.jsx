@@ -59,6 +59,7 @@ export default function Prediction() {
     Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings()])
       .then(([matches, preds, settings]) => {
         setPredictionsLocked(settings.predictions_locked)
+
         const grouped = {}
         for (const match of matches) {
           const key = `Group ${match.group_name}`
@@ -298,6 +299,7 @@ export default function Prediction() {
                 onChange={handleChange}
                 incomplete={incompleteIds.has(match.id)}
                 readOnly={predictionsLocked}
+
               />
             ))}
           </div>
