@@ -1,25 +1,92 @@
-.groupsNav {
+.stageNav {
   display: flex;
-  flex-wrap: wrap;
-  width: 100%;
+  flex-direction: column;
   gap: 0.5rem;
   padding: 1rem;
 }
 
-.groupsNav button {
+.desktopNav {
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobilePager {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pagerBtn {
+  padding: 0.4rem 0.85rem;
+  background: var(--input-bg);
+  border: 0.1rem solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background-color 0.2s;
+
+  &:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+}
+
+.pagerLabel {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+@media (min-width: 640px) {
+  .desktopNav {
+    display: flex;
+  }
+
+  .mobilePager {
+    display: none;
+  }
+}
+
+.stageRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.stageLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.stageRow button {
   padding: 0.5rem 1rem;
   background-color: var(--input-bg);
   color: var(--text-primary);
-  border: 0.1rem solid var(--border); 
+  border: 0.1rem solid var(--border);
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 
-  & :hover {
+  &:hover {
     background-color: var(--primary-hover);
   }
 
-&.active {
+  &.active {
     background-color: var(--selected);
   }
 
