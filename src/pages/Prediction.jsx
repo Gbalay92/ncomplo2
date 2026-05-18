@@ -51,7 +51,6 @@ export default function Prediction() {
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
-  const [navOpen, setNavOpen] = useState(true)
   const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
@@ -209,9 +208,13 @@ export default function Prediction() {
   const activeGroupMatches = isGroupTab ? (groupedMatches[activeTab] ?? []) : []
   const activeBracketSlots = isBracketTab && slots ? slots.filter(s => s.stage === activeTab) : []
 
-  const activeLabel = isBracketTab
-    ? `Knockout / ${BRACKET_STAGES.find(s => s.key === activeTab)?.label}`
-    : `Groups / ${activeTab?.replace('Group ', '')}`
+  const allTabs = [
+    ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' })),
+    ...(bracketAvailable ? BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' })) : []),
+  ]
+  const activeIndex = allTabs.findIndex(t => t.key === activeTab)
+  const activeTabMeta = allTabs[activeIndex]
+  const paginationLabel = activeTabMeta ? `${activeTabMeta.section} · ${activeTabMeta.label}` : ''
 
   const isGroupDirty = groupNames.some(name =>
     groupedMatches[name].some(m => {
@@ -233,45 +236,53 @@ export default function Prediction() {
     <>
       <main style={{ paddingBottom: '5rem' }}>
         <nav className={navStyles.stageNav}>
-          <button className={navStyles.navToggle} onClick={() => setNavOpen(o => !o)}>
-            <span>{activeLabel}</span>
-            <span className={`${navStyles.chevron} ${navOpen ? navStyles.chevronOpen : ''}`}>▾</span>
-          </button>
-
-          {navOpen && (
-            <>
+          {/* Desktop: two rows */}
+          <div className={navStyles.desktopNav}>
+            <div className={navStyles.stageRow}>
+              <span className={navStyles.stageLabel}>Groups</span>
+              {groupNames.map(name => (
+                <button
+                  key={name}
+                  className={[
+                    activeTab === name ? navStyles.active : '',
+                    incompleteGroups.has(name) ? navStyles.incomplete : '',
+                  ].join(' ')}
+                  onClick={() => setActiveTab(name)}
+                >
+                  {name.replace('Group ', '')}
+                </button>
+              ))}
+            </div>
+            {bracketAvailable && (
               <div className={navStyles.stageRow}>
-                <span className={navStyles.stageLabel}>Groups</span>
-                {groupNames.map(name => (
+                <span className={navStyles.stageLabel}>Knockout</span>
+                {BRACKET_STAGES.map(({ key, label }) => (
                   <button
-                    key={name}
-                    className={[
-                      activeTab === name ? navStyles.active : '',
-                      incompleteGroups.has(name) ? navStyles.incomplete : '',
-                    ].join(' ')}
-                    onClick={() => { setActiveTab(name); setNavOpen(false) }}
+                    key={key}
+                    className={activeTab === key ? navStyles.active : ''}
+                    onClick={() => setActiveTab(key)}
                   >
-                    {name.replace('Group ', '')}
+                    {label}
                   </button>
                 ))}
               </div>
+            )}
+          </div>
 
-              {bracketAvailable && (
-                <div className={navStyles.stageRow}>
-                  <span className={navStyles.stageLabel}>Knockout</span>
-                  {BRACKET_STAGES.map(({ key, label }) => (
-                    <button
-                      key={key}
-                      className={activeTab === key ? navStyles.active : ''}
-                      onClick={() => { setActiveTab(key); setNavOpen(false) }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+          {/* Mobile: pagination */}
+          <div className={navStyles.mobilePager}>
+            <button
+              className={navStyles.pagerBtn}
+              onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
+              disabled={activeIndex === 0}
+            >◀</button>
+            <span className={navStyles.pagerLabel}>{paginationLabel}</span>
+            <button
+              className={navStyles.pagerBtn}
+              onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
+              disabled={activeIndex === allTabs.length - 1}
+            >▶</button>
+          </div>
         </nav>
 
         {isGroupTab && (
