@@ -9,6 +9,12 @@ export async function saveMatchResult(matchId, homeGoals, awayGoals) {
   return res.json()
 }
 
+export async function lockPredictions() {
+  const res = await post('/admin/lock-predictions')
+  if (!res.ok) throw new Error('Failed to lock predictions')
+  return res.json()
+}
+
 export async function lockGroupStage() {
   const res = await post('/admin/lock-group-stage')
   if (!res.ok) throw new Error('Failed to lock group stage')
