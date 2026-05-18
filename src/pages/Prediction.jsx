@@ -32,18 +32,6 @@ function buildQualifiersMap(qualifiers) {
   return map
 }
 
-function getDownstreamSlotIds(slotLabel, slotsByLabel, picks, visited = new Set()) {
-  if (visited.has(slotLabel)) return []
-  visited.add(slotLabel)
-  const affected = []
-  for (const slot of Object.values(slotsByLabel)) {
-    if (slot.home_source === slotLabel || slot.away_source === slotLabel) {
-      if (picks[slot.slot_id]) affected.push(slot.slot_id)
-      affected.push(...getDownstreamSlotIds(slot.slot_label, slotsByLabel, picks, visited))
-    }
-  }
-  return affected
-}
 
 export default function Prediction() {
   // ── Group stage ──────────────────────────────────────────────
@@ -122,6 +110,11 @@ export default function Prediction() {
       return
     }
 
+    const hasBracketPicks = Object.keys(picks).length > 0
+    if (hasBracketPicks) {
+      if (!confirm('Saving group predictions will clear your entire bracket. Continue?')) return
+    }
+
     const payload = allMatches.map(m => ({
       match_id: m.id,
       pred_home_goals: parseInt(values[m.id].home, 10),
@@ -131,6 +124,10 @@ export default function Prediction() {
     setSaveGroupStatus('saving')
     try {
       await savePredictions(payload)
+      if (hasBracketPicks) {
+        await saveMyBracket([])
+        setPicks({})
+      }
       setSaveGroupStatus('saved')
       setBracketAvailable(true)
       setTimeout(() => setSaveGroupStatus(null), 2000)
@@ -156,12 +153,16 @@ export default function Prediction() {
   }
 
   function handlePick(slot, team) {
-    const downstream = [...new Set(getDownstreamSlotIds(slot.slot_label, slotsByLabel, picks))]
-    if (downstream.length > 0) {
-      if (!confirm('Changing this pick will clear your selections for subsequent rounds. Continue?')) return
+    const stageIndex = BRACKET_STAGES.findIndex(s => s.key === slot.stage)
+    const laterKeys = new Set(BRACKET_STAGES.slice(stageIndex + 1).map(s => s.key))
+    const laterIds = slots.filter(s => laterKeys.has(s.stage)).map(s => s.slot_id)
+    const hasPicks = laterIds.some(id => picks[id])
+
+    if (hasPicks) {
+      if (!confirm('Changing this pick will clear all subsequent round selections. Continue?')) return
       setPicks(prev => {
         const next = { ...prev }
-        for (const id of downstream) delete next[id]
+        for (const id of laterIds) delete next[id]
         next[slot.slot_id] = team
         return next
       })
