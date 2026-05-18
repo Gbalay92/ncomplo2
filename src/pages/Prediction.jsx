@@ -52,13 +52,13 @@ export default function Prediction() {
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
-  const [groupLocked, setGroupLocked] = useState(false)
+  const [predictionsLocked, setPredictionsLocked] = useState(false)
   const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
     Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings()])
       .then(([matches, preds, settings]) => {
-        setGroupLocked(settings.group_stage_locked)
+        setPredictionsLocked(settings.predictions_locked)
         const grouped = {}
         for (const match of matches) {
           const key = `Group ${match.group_name}`
@@ -297,7 +297,7 @@ export default function Prediction() {
                 value={values[match.id]}
                 onChange={handleChange}
                 incomplete={incompleteIds.has(match.id)}
-                readOnly={groupLocked}
+                readOnly={predictionsLocked}
               />
             ))}
           </div>
@@ -314,7 +314,7 @@ export default function Prediction() {
                   homeTeam={homeTeam}
                   awayTeam={awayTeam}
                   pickedTeamId={picks[slot.slot_id]?.team_id}
-                  onPick={team => handlePick(slot, team)}
+                  onPick={predictionsLocked ? undefined : team => handlePick(slot, team)}
                 />
               )
             })}
@@ -322,7 +322,7 @@ export default function Prediction() {
         )}
       </main>
 
-      {isGroupTab && !groupLocked && (
+      {isGroupTab && !predictionsLocked && (
         <div className={styles.saveBar}>
           {incompleteIds.size > 0 && <p className={styles.saveError}>Fill in all matches before saving</p>}
           <button className={styles.saveBtn} onClick={handleSaveGroup} disabled={saveGroupStatus === 'saving' || !isGroupDirty}>
@@ -331,13 +331,13 @@ export default function Prediction() {
         </div>
       )}
 
-      {isGroupTab && groupLocked && (
+      {predictionsLocked && (
         <div className={styles.saveBar}>
-          <p className={styles.saveError}>Group stage predictions are locked</p>
+          <p className={styles.saveError}>Predictions are locked</p>
         </div>
       )}
 
-      {isBracketTab && (
+      {isBracketTab && !predictionsLocked && (
         <div className={styles.saveBar}>
           <button className={styles.saveBtn} onClick={handleSaveBracket} disabled={saveBracketStatus === 'saving' || !isBracketDirty}>
             {saveBracketStatus === 'saving' ? 'Saving…' : saveBracketStatus === 'saved' ? '✓ Saved' : saveBracketStatus === 'error' ? 'Error — retry' : 'Save bracket'}

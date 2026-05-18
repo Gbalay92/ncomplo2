@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getMatches } from '../api/matches.js'
-import { saveMatchResult, lockGroupStage } from '../api/admin.js'
+import { saveMatchResult, lockPredictions, lockGroupStage } from '../api/admin.js'
+import { getTournamentSettings } from '../api/tournament.js'
 import { AdminMatchCard } from '../components/AdminMatchCard.jsx'
 import styles from './Admin.module.css'
 import navStyles from '../components/TournamentNavigation.module.css'
@@ -10,9 +11,20 @@ export default function Admin() {
     const [activeGroup, setActiveGroup] = useState(null)
     const [savedResults, setSavedResults] = useState({})
     const [expandedId, setExpandedId] = useState(null)
+    const [predLockStatus, setPredLockStatus] = useState(null)
+    const [predLockError, setPredLockError] = useState(null)
     const [lockStatus, setLockStatus] = useState(null)
     const [lockError, setLockError] = useState(null)
     const [loadError, setLoadError] = useState(null)
+
+    useEffect(() => {
+        getTournamentSettings()
+            .then(settings => {
+                if (settings.predictions_locked) setPredLockStatus('locked')
+                if (settings.group_stage_locked) setLockStatus('locked')
+            })
+            .catch(() => {})
+    }, [])
 
     useEffect(() => {
         getMatches(null, 'group')
@@ -37,6 +49,19 @@ export default function Admin() {
     async function handleSave(matchId, homeGoals, awayGoals) {
         await saveMatchResult(matchId, homeGoals, awayGoals)
         setSavedResults(prev => ({ ...prev, [matchId]: true }))
+    }
+
+    async function handleLockPredictions() {
+        if (!confirm('Lock all predictions? Users will no longer be able to edit their group or bracket predictions. This cannot be undone.')) return
+        setPredLockStatus('locking')
+        setPredLockError(null)
+        try {
+            await lockPredictions()
+            setPredLockStatus('locked')
+        } catch {
+            setPredLockStatus(null)
+            setPredLockError('Failed to lock predictions.')
+        }
     }
 
     async function handleLock() {
@@ -92,6 +117,24 @@ export default function Admin() {
                         />
                     ))}
                 </div>
+            </section>
+
+            <section className={styles.lockSection}>
+                <h2>Lock Predictions</h2>
+                <p>Prevent all users from editing their group and bracket predictions. Do this before the tournament starts.</p>
+                {predLockError && <p className={styles.lockError}>{predLockError}</p>}
+                {predLockStatus === 'locked'
+                    ? <p className={styles.lockSuccess}>Predictions are locked.</p>
+                    : (
+                        <button
+                            className={styles.lockBtn}
+                            onClick={handleLockPredictions}
+                            disabled={predLockStatus === 'locking'}
+                        >
+                            {predLockStatus === 'locking' ? 'Locking…' : 'Lock predictions'}
+                        </button>
+                    )
+                }
             </section>
 
             <section className={styles.lockSection}>
