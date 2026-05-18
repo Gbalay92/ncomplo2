@@ -51,6 +51,7 @@ export default function Prediction() {
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
+  const [navOpen, setNavOpen] = useState(true)
   const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
@@ -208,6 +209,10 @@ export default function Prediction() {
   const activeGroupMatches = isGroupTab ? (groupedMatches[activeTab] ?? []) : []
   const activeBracketSlots = isBracketTab && slots ? slots.filter(s => s.stage === activeTab) : []
 
+  const activeLabel = isBracketTab
+    ? `Knockout / ${BRACKET_STAGES.find(s => s.key === activeTab)?.label}`
+    : `Groups / ${activeTab?.replace('Group ', '')}`
+
   const isGroupDirty = groupNames.some(name =>
     groupedMatches[name].some(m => {
       const cur = values[m.id]
@@ -228,35 +233,44 @@ export default function Prediction() {
     <>
       <main style={{ paddingBottom: '5rem' }}>
         <nav className={navStyles.stageNav}>
-          <div className={navStyles.stageRow}>
-            <span className={navStyles.stageLabel}>Groups</span>
-            {groupNames.map(name => (
-              <button
-                key={name}
-                className={[
-                  activeTab === name ? navStyles.active : '',
-                  incompleteGroups.has(name) ? navStyles.incomplete : '',
-                ].join(' ')}
-                onClick={() => setActiveTab(name)}
-              >
-                {name.replace('Group ', '')}
-              </button>
-            ))}
-          </div>
+          <button className={navStyles.navToggle} onClick={() => setNavOpen(o => !o)}>
+            <span>{activeLabel}</span>
+            <span className={`${navStyles.chevron} ${navOpen ? navStyles.chevronOpen : ''}`}>▾</span>
+          </button>
 
-          {bracketAvailable && (
-            <div className={navStyles.stageRow}>
-              <span className={navStyles.stageLabel}>Knockout</span>
-              {BRACKET_STAGES.map(({ key, label }) => (
-                <button
-                  key={key}
-                  className={activeTab === key ? navStyles.active : ''}
-                  onClick={() => setActiveTab(key)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+          {navOpen && (
+            <>
+              <div className={navStyles.stageRow}>
+                <span className={navStyles.stageLabel}>Groups</span>
+                {groupNames.map(name => (
+                  <button
+                    key={name}
+                    className={[
+                      activeTab === name ? navStyles.active : '',
+                      incompleteGroups.has(name) ? navStyles.incomplete : '',
+                    ].join(' ')}
+                    onClick={() => { setActiveTab(name); setNavOpen(false) }}
+                  >
+                    {name.replace('Group ', '')}
+                  </button>
+                ))}
+              </div>
+
+              {bracketAvailable && (
+                <div className={navStyles.stageRow}>
+                  <span className={navStyles.stageLabel}>Knockout</span>
+                  {BRACKET_STAGES.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      className={activeTab === key ? navStyles.active : ''}
+                      onClick={() => { setActiveTab(key); setNavOpen(false) }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </nav>
 
