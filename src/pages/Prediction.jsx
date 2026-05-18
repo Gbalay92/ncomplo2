@@ -37,6 +37,7 @@ export default function Prediction() {
   // ── Group stage ──────────────────────────────────────────────
   const [groupedMatches, setGroupedMatches] = useState(null)
   const [values, setValues] = useState({})
+  const [savedValues, setSavedValues] = useState({})
   const [saveGroupStatus, setSaveGroupStatus] = useState(null)
   const [incompleteIds, setIncompleteIds] = useState(new Set())
   const [bracketAvailable, setBracketAvailable] = useState(false)
@@ -45,6 +46,7 @@ export default function Prediction() {
   const [slots, setSlots] = useState(null)
   const [qualifiers, setQualifiers] = useState(null)
   const [picks, setPicks] = useState({})
+  const [savedPicks, setSavedPicks] = useState({})
   const [saveBracketStatus, setSaveBracketStatus] = useState(null)
 
   // ── Navigation ───────────────────────────────────────────────
@@ -68,6 +70,7 @@ export default function Prediction() {
           initial[p.match_id] = { home: String(p.pred_home_goals), away: String(p.pred_away_goals) }
         }
         setValues(initial)
+        setSavedValues(initial)
         setBracketAvailable(preds.length === matches.length)
       })
       .catch(() => setLoadError('Failed to load data'))
@@ -90,6 +93,7 @@ export default function Prediction() {
           }
         }
         setPicks(initialPicks)
+        setSavedPicks(initialPicks)
       })
       .catch(() => {})
   }, [bracketAvailable])
@@ -124,9 +128,11 @@ export default function Prediction() {
     setSaveGroupStatus('saving')
     try {
       await savePredictions(payload)
+      setSavedValues(values)
       if (hasBracketPicks) {
         await saveMyBracket([])
         setPicks({})
+        setSavedPicks({})
       }
       setSaveGroupStatus('saved')
       setBracketAvailable(true)
@@ -179,6 +185,7 @@ export default function Prediction() {
     setSaveBracketStatus('saving')
     try {
       await saveMyBracket(payload)
+      setSavedPicks(picks)
       setSaveBracketStatus('saved')
       setTimeout(() => setSaveBracketStatus(null), 2000)
     } catch {
@@ -200,6 +207,22 @@ export default function Prediction() {
 
   const activeGroupMatches = isGroupTab ? (groupedMatches[activeTab] ?? []) : []
   const activeBracketSlots = isBracketTab && slots ? slots.filter(s => s.stage === activeTab) : []
+
+  const isGroupDirty = groupNames.some(name =>
+    groupedMatches[name].some(m => {
+      const cur = values[m.id]
+      const sav = savedValues[m.id]
+      if (!cur && !sav) return false
+      if (!cur || !sav) return true
+      return cur.home !== sav.home || cur.away !== sav.away
+    })
+  )
+
+  const isBracketDirty = JSON.stringify(
+    Object.fromEntries(Object.entries(picks).map(([k, v]) => [k, v.team_id]))
+  ) !== JSON.stringify(
+    Object.fromEntries(Object.entries(savedPicks).map(([k, v]) => [k, v.team_id]))
+  )
 
   return (
     <>
@@ -266,7 +289,7 @@ export default function Prediction() {
       {isGroupTab && (
         <div className={styles.saveBar}>
           {incompleteIds.size > 0 && <p className={styles.saveError}>Fill in all matches before saving</p>}
-          <button className={styles.saveBtn} onClick={handleSaveGroup} disabled={saveGroupStatus === 'saving'}>
+          <button className={styles.saveBtn} onClick={handleSaveGroup} disabled={saveGroupStatus === 'saving' || !isGroupDirty}>
             {saveGroupStatus === 'saving' ? 'Saving…' : saveGroupStatus === 'saved' ? '✓ Saved' : saveGroupStatus === 'error' ? 'Error — retry' : 'Save predictions'}
           </button>
         </div>
@@ -274,7 +297,7 @@ export default function Prediction() {
 
       {isBracketTab && (
         <div className={styles.saveBar}>
-          <button className={styles.saveBtn} onClick={handleSaveBracket} disabled={saveBracketStatus === 'saving'}>
+          <button className={styles.saveBtn} onClick={handleSaveBracket} disabled={saveBracketStatus === 'saving' || !isBracketDirty}>
             {saveBracketStatus === 'saving' ? 'Saving…' : saveBracketStatus === 'saved' ? '✓ Saved' : saveBracketStatus === 'error' ? 'Error — retry' : 'Save bracket'}
           </button>
         </div>
