@@ -227,30 +227,37 @@ export default function Prediction() {
   return (
     <>
       <main style={{ paddingBottom: '5rem' }}>
-        <nav className={navStyles.groupsNav}>
-          {groupNames.map(name => (
-            <button
-              key={name}
-              className={[
-                activeTab === name ? navStyles.active : '',
-                incompleteGroups.has(name) ? navStyles.incomplete : '',
-              ].join(' ')}
-              onClick={() => setActiveTab(name)}
-            >
-              {name}
-            </button>
-          ))}
+        <nav className={navStyles.stageNav}>
+          <div className={navStyles.stageRow}>
+            <span className={navStyles.stageLabel}>Groups</span>
+            {groupNames.map(name => (
+              <button
+                key={name}
+                className={[
+                  activeTab === name ? navStyles.active : '',
+                  incompleteGroups.has(name) ? navStyles.incomplete : '',
+                ].join(' ')}
+                onClick={() => setActiveTab(name)}
+              >
+                {name.replace('Group ', '')}
+              </button>
+            ))}
+          </div>
 
-          {bracketAvailable && BRACKET_STAGES.map(({ key, label }, i) => (
-            <button
-              key={key}
-              className={activeTab === key ? navStyles.active : ''}
-              onClick={() => setActiveTab(key)}
-              style={i === 0 ? { borderLeft: '2px solid var(--border)', marginLeft: '0.25rem', paddingLeft: '1rem' } : undefined}
-            >
-              {label}
-            </button>
-          ))}
+          {bracketAvailable && (
+            <div className={navStyles.stageRow}>
+              <span className={navStyles.stageLabel}>Knockout</span>
+              {BRACKET_STAGES.map(({ key, label }) => (
+                <button
+                  key={key}
+                  className={activeTab === key ? navStyles.active : ''}
+                  onClick={() => setActiveTab(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
         </nav>
 
         {isGroupTab && (
