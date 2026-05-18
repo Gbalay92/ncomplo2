@@ -50,6 +50,7 @@ export default function Header() {
                     <Link onClick={() => setOpen(false)} href="./">Home</Link>
                     <Link onClick={() => setOpen(false)} href="./Leaderboard">Leaderboard</Link>
                     <Link onClick={() => setOpen(false)} href="./prediction">Prediction</Link>
+                    <Link onClick={() => setOpen(false)} href="./bracket">Bracket</Link>
                     {user?.is_admin && <Link onClick={() => setOpen(false)} href="./admin">Admin</Link>}
                 </nav>
                  <button className={styles.btnUser} onClick={clickUserBtn}>
