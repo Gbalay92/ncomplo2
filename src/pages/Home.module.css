@@ -51,16 +51,24 @@ main > section > img{
 
 .wingetsContainer {
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	gap: 2rem;
 	width: 100%;
-	padding: 2rem ;
+	padding: 2rem;
+}
+
+@media (min-width: 640px) {
+	.wingetsContainer {
+		flex-direction: row;
+		align-items: flex-start;
+	}
 }
 
 .nextMatchContainer {
-	margin-top: 2rem;
 	width: 100%;
+	max-width: 480px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -69,4 +77,19 @@ main > section > img{
 		font-size: 1.25rem;
 		color: var(--text-secondary);
 	}
+}
+
+.noMatch {
+	color: #888;
+	font-size: 0.95rem;
+}
+
+.fullWidth {
+	justify-content: center;
+}
+
+.nextMatchFull {
+	width: 100%;
+	max-width: 100%;
+	margin-top: 0;
 }

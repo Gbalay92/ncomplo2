@@ -1,16 +1,18 @@
 import { Link } from "./Link"
 import { useAuth } from "../context/AuthContext"
+import { useRouter } from "../hooks/useRouter"
 import styles from "./Header.module.css"
 import { useEffect, useState, useRef } from "react"
 
 export default function Header() {
-    const { isLoggedIn, handleLogin, handleLogout } = useAuth()
+    const { isLoggedIn, handleLogin, user } = useAuth()
+    const { navigateTo } = useRouter()
     const [open, setOpen] = useState(false)
     const headerRef = useRef(null)
 
     const clickUserBtn = () => {
         if (isLoggedIn) {
-            handleLogout()
+            navigateTo('/profile')
         } else {
             handleLogin()
         }
@@ -50,12 +52,19 @@ export default function Header() {
                     <Link onClick={() => setOpen(false)} href="./">Home</Link>
                     <Link onClick={() => setOpen(false)} href="./Leaderboard">Leaderboard</Link>
                     <Link onClick={() => setOpen(false)} href="./prediction">Prediction</Link>
+{user?.is_admin && <Link onClick={() => setOpen(false)} href="./admin">Admin</Link>}
                 </nav>
                  <button className={styles.btnUser} onClick={clickUserBtn}>
-                    <svg className={styles.iconUser} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+                    {isLoggedIn ? (
+                        <span className={styles.avatarInitial}>
+                            {user?.display_name?.[0]?.toUpperCase() ?? '?'}
+                        </span>
+                    ) : (
+                        <svg className={styles.iconUser} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    )}
                  </button>
             </header>
         </>

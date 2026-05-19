@@ -1,17 +1,37 @@
 
 
 .loginContainer {
-    height: 80vh;
+    min-height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient( var(--primary),var(--background) );
     background-size: cover;
+    padding: 1rem;
 }
 
 
+.cardTitle {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.errorBanner {
+    background: #4a0d0d;
+    border: 1px solid #f87171;
+    color: #f87171;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
 .loginCard {
-    width: 24rem;
+    width: min(24rem, 100%);
     padding: 32px;
     background-color: var(--card-bg);
     border-radius: 12px;

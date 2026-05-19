@@ -14,8 +14,8 @@
     box-shadow: 0 2px 4px var(--shadow);
     display: flex;
     flex-direction: column;
-    height: 9rem;
-    border: 0.2rem solid #2e5e96; ;
+    gap: 0.5rem;
+    border: 0.2rem solid #2e5e96;
 }
 
 .matchInfo {
@@ -34,6 +34,14 @@
     border-radius: 4px;
     background-color: var(--input-bg);
     color: var(--text-primary);
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.scoreInput::-webkit-outer-spin-button,
+.scoreInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .scoreInput:not(:placeholder-shown) {
@@ -43,6 +51,10 @@
 
 .scoreInput:focus {
   border: 0;
+}
+
+.scoreInput:focus::placeholder {
+  color: transparent;
 }
 
 .scoreContainer {
@@ -64,20 +76,43 @@
     & .flagContainer{
         width: 3rem;
         height: 2.5rem;
-        background-color: aliceblue;
-        border-radius: 50%;
-        align-items: center;
-        text-align: center;
         display: flex;
+        align-items: center;
         justify-content: center;
     }
 }
 
-footer {
-    left: 45%;
-    position: absolute;
-    width: fit-content;
-    font-size: 0.9rem;
+.matchFooter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
-    text-align: center;
+    border-top: 1px solid var(--border);
+    padding-top: 0.4rem;
 }
+
+.matchTime {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.scoreText {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 1.5rem;
+    text-align: center;
+    line-height: 1;
+}
+
+.scoreSep {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+}
+
+.matchCardIncomplete {
+    border-color: #e53935;
+}
+

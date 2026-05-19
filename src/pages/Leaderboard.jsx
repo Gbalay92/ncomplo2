@@ -1,31 +1,45 @@
 import { useState, useEffect } from 'react'
 import styles from './Leaderboard.module.css'
-import data from '../example-data.json'
+import { getLeaderboard } from '../api/leaderboard.js'
 import { UserLeaderboardCard } from '../components/UserLeaderboardCard'
 import { Podium } from '../components/Podium'
 
 export default function Leaderboard() {
-    const [leaderboardData, setLeaderboardData] = useState([])
+  const [leaderboardData, setLeaderboardData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-    useEffect(() => {
-        const sortedData = [...data].sort((a, b) => b.points - a.points)
-        setLeaderboardData(sortedData)
-    }, [])
+  useEffect(() => {
+    getLeaderboard()
+      .then(setLeaderboardData)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
-    const topThree = leaderboardData.slice(0, 3)
-    const theRest = leaderboardData.slice(3)
+  if (loading) return <div className={styles.page}><p>Loading…</p></div>
+  if (error) return <div className={styles.page}><p>Error: {error}</p></div>
 
-    return (
-        <div className={styles.leaderboardContainer}>
-            <h1>World Cup Leaderboard</h1>
+  const topThree = leaderboardData.slice(0, 3)
+  const theRest = leaderboardData.slice(3)
 
-            <Podium users={topThree} />
+  return (
+    <div className={styles.page}>
+      <h1>Leaderboard</h1>
 
-            <div className={styles.listContainer}>
-                {theRest.map((entry, index) => (
-                    <UserLeaderboardCard key={index} user={entry} />
-                ))}
+      {leaderboardData.length === 0 ? (
+        <p className={styles.empty}>No predictions yet. Be the first!</p>
+      ) : (
+        <>
+          <Podium users={topThree} />
+          {theRest.length > 0 && (
+            <div className={styles.list}>
+              {theRest.map(entry => (
+                <UserLeaderboardCard key={entry.user_id} user={entry} />
+              ))}
             </div>
-        </div>
-    )
+          )}
+        </>
+      )}
+    </div>
+  )
 }

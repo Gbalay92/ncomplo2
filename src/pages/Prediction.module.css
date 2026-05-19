@@ -1,0 +1,35 @@
+.saveError {
+    font-size: 0.85rem;
+    color: #e53935;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
+.saveBar {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    background: linear-gradient(to top, var(--background) 70%, transparent);
+}
+
+.saveBtn {
+    padding: 0.75rem 2.5rem;
+    background-color: var(--primary-light);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.saveBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.saveBtn:not(:disabled):hover {
+    background-color: var(--primary-hover);
+}
