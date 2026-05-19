@@ -75,12 +75,13 @@ function buildLiveQualifiersMap(groupedMatches, values) {
   for (const [groupKey, matches] of Object.entries(groupedMatches)) {
     const groupName = groupKey.replace('Group ', '')
     const standings = computeGroupStandings(matches, values)
+    const allFilled = matches.every(m => isFilled(values[m.id]))
 
     standings.forEach((team, i) => {
       const pos = i + 1
-      if (pos <= 2) {
+      if (pos <= 2 && allFilled) {
         map[`${pos}${groupName}`] = team
-      } else if (pos === 3) {
+      } else if (pos === 3 && allFilled) {
         thirds.push({ ...team, group_name: groupName })
       }
     })
