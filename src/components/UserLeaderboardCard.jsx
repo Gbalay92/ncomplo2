@@ -1,9 +1,14 @@
 import styles from './UserLeaderboardCard.module.css'
 
 export function UserLeaderboardCard({ user }) {
-    return (
-        <div className={styles.userCard}>
-                <h2>{user.display_name}</h2>
-                <h3>{user.total_points} pts</h3>
-        </div>
-)}
+  const initial = user.display_name?.[0]?.toUpperCase() ?? '?'
+
+  return (
+    <div className={styles.card}>
+      <span className={styles.rank}>{user.rank}</span>
+      <div className={styles.avatar}>{initial}</div>
+      <span className={styles.name}>{user.display_name}</span>
+      <span className={styles.points}>{user.total_points} pts</span>
+    </div>
+  )
+}
