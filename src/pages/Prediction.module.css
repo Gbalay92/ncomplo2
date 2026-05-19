@@ -22,6 +22,8 @@
     align-items: flex-start;
     gap: 1.5rem;
     padding: 0 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
   }
 
   .matchList {
@@ -30,7 +32,7 @@
   }
 
   .standingsPanel {
-    width: 240px;
+    width: 220px;
     flex-shrink: 0;
     position: sticky;
     top: 1rem;
