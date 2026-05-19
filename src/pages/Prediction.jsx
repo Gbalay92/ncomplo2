@@ -156,6 +156,30 @@ export default function Prediction() {
     return buildLiveQualifiersMap(groupedMatches, values)
   }, [groupedMatches, values])
 
+  // ── Cascade-clear picks when qualifiers change ───────────────
+  useEffect(() => {
+    if (!slots || !slotsByLabel) return
+    setPicks(prev => {
+      let next = { ...prev }
+      let changed = false
+      for (const { key: stage } of BRACKET_STAGES) {
+        for (const slot of slots.filter(s => s.stage === stage)) {
+          const pick = next[slot.slot_id]
+          if (!pick) continue
+          const resolve = src => qualifiersMap[src] ?? next[slotsByLabel[src]?.slot_id] ?? null
+          const home = resolve(slot.home_source)
+          const away = resolve(slot.away_source)
+          const valid = new Set([home?.team_id, away?.team_id].filter(Boolean))
+          if (!valid.has(pick.team_id)) {
+            delete next[slot.slot_id]
+            changed = true
+          }
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [qualifiersMap, slots, slotsByLabel])
+
   // ── Group handlers ───────────────────────────────────────────
   function handleChange(matchId, home, away) {
     setValues(prev => ({ ...prev, [matchId]: { home, away } }))
