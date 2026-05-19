@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { getMatches } from '../api/matches.js'
-import { saveMatchResult, lockPredictions, lockGroupStage } from '../api/admin.js'
+import { getAdminBracket, saveMatchResult, saveKnockoutResult, lockPredictions, lockGroupStage } from '../api/admin.js'
 import { getTournamentSettings } from '../api/tournament.js'
 import { AdminMatchCard } from '../components/AdminMatchCard.jsx'
+import { AdminKnockoutCard } from '../components/AdminKnockoutCard.jsx'
 import styles from './Admin.module.css'
 import navStyles from '../components/TournamentNavigation.module.css'
 
@@ -11,6 +12,9 @@ export default function Admin() {
     const [activeGroup, setActiveGroup] = useState(null)
     const [savedResults, setSavedResults] = useState({})
     const [expandedId, setExpandedId] = useState(null)
+    const [knockoutSlots, setKnockoutSlots] = useState(null)
+    const [activeKnockoutStage, setActiveKnockoutStage] = useState('round_of_32')
+    const [expandedKnockoutId, setExpandedKnockoutId] = useState(null)
     const [predLockStatus, setPredLockStatus] = useState(null)
     const [predLockError, setPredLockError] = useState(null)
     const [lockStatus, setLockStatus] = useState(null)
@@ -21,7 +25,10 @@ export default function Admin() {
         getTournamentSettings()
             .then(settings => {
                 if (settings.predictions_locked) setPredLockStatus('locked')
-                if (settings.group_stage_locked) setLockStatus('locked')
+                if (settings.group_stage_locked) {
+                    setLockStatus('locked')
+                    getAdminBracket().then(setKnockoutSlots).catch(() => {})
+                }
             })
             .catch(() => {})
     }, [])
@@ -51,6 +58,15 @@ export default function Admin() {
         setSavedResults(prev => ({ ...prev, [matchId]: true }))
     }
 
+    async function handleSaveKnockout(slotId, homeGoals, awayGoals, winnerId) {
+        await saveKnockoutResult(slotId, homeGoals, awayGoals, winnerId)
+        setKnockoutSlots(prev => prev.map(s =>
+            s.slot_id === slotId
+                ? { ...s, real_home_goals: homeGoals, real_away_goals: awayGoals, real_winner_id: winnerId }
+                : s
+        ))
+    }
+
     async function handleLockPredictions() {
         if (!confirm('Lock all predictions? Users will no longer be able to edit their group or bracket predictions. This cannot be undone.')) return
         setPredLockStatus('locking')
@@ -71,6 +87,7 @@ export default function Admin() {
         try {
             await lockGroupStage()
             setLockStatus('locked')
+            getAdminBracket().then(setKnockoutSlots).catch(() => {})
         } catch {
             setLockStatus(null)
             setLockError('Failed to lock group stage. Make sure all 72 results are entered.')
@@ -136,6 +153,51 @@ export default function Admin() {
                     )
                 }
             </section>
+
+            {knockoutSlots && (() => {
+                const STAGES = [
+                    { key: 'round_of_32', label: 'R32' },
+                    { key: 'round_of_16', label: 'R16' },
+                    { key: 'quarter_final', label: 'QF' },
+                    { key: 'semi_final', label: 'SF' },
+                    { key: 'final', label: 'Final' },
+                ]
+                const activeSlots = knockoutSlots.filter(s => s.stage === activeKnockoutStage)
+                const filledKnockout = knockoutSlots.filter(s => s.real_home_goals != null).length
+
+                return (
+                    <section className={styles.groupStage}>
+                        <h2>Knockout Results</h2>
+                        <p className={styles.progress}>{filledKnockout} / {knockoutSlots.length} results entered</p>
+
+                        <nav className={navStyles.stageNav}>
+                            <div className={navStyles.stageRow}>
+                                {STAGES.map(({ key, label }) => (
+                                    <button
+                                        key={key}
+                                        className={activeKnockoutStage === key ? navStyles.active : ''}
+                                        onClick={() => { setActiveKnockoutStage(key); setExpandedKnockoutId(null) }}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        </nav>
+
+                        <div className={styles.matchList}>
+                            {activeSlots.map(slot => (
+                                <AdminKnockoutCard
+                                    key={slot.slot_id}
+                                    slot={slot}
+                                    isExpanded={expandedKnockoutId === slot.slot_id}
+                                    onToggle={() => setExpandedKnockoutId(prev => prev === slot.slot_id ? null : slot.slot_id)}
+                                    onSave={handleSaveKnockout}
+                                />
+                            ))}
+                        </div>
+                    </section>
+                )
+            })()}
 
             <section className={styles.lockSection}>
                 <h2>Lock Group Stage</h2>
