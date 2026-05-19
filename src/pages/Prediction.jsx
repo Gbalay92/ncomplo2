@@ -354,17 +354,21 @@ export default function Prediction() {
         </nav>
 
         {isGroupTab && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0 1rem' }}>
-            {activeGroupMatches.map(match => (
-              <MatchCard
-                key={match.match_number}
-                match={match}
-                value={values[match.id]}
-                onChange={handleChange}
-                readOnly={predictionsLocked}
-              />
-            ))}
-            <GroupStandings standings={activeStandings} />
+          <div className={styles.groupLayout}>
+            <div className={styles.matchList}>
+              {activeGroupMatches.map(match => (
+                <MatchCard
+                  key={match.match_number}
+                  match={match}
+                  value={values[match.id]}
+                  onChange={handleChange}
+                  readOnly={predictionsLocked}
+                />
+              ))}
+            </div>
+            <div className={styles.standingsPanel}>
+              <GroupStandings standings={activeStandings} />
+            </div>
           </div>
         )}
 
