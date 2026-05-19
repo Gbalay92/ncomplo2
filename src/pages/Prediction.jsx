@@ -156,6 +156,12 @@ export default function Prediction() {
     return buildLiveQualifiersMap(groupedMatches, values)
   }, [groupedMatches, values])
 
+  // ── Bracket slot lookup ──────────────────────────────────────
+  const slotsByLabel = useMemo(() => {
+    if (!slots) return {}
+    return Object.fromEntries(slots.map(s => [s.slot_label, s]))
+  }, [slots])
+
   // ── Cascade-clear picks when qualifiers change ───────────────
   useEffect(() => {
     if (!slots || !slotsByLabel) return
@@ -220,11 +226,6 @@ export default function Prediction() {
   }
 
   // ── Bracket handlers ─────────────────────────────────────────
-  const slotsByLabel = useMemo(() => {
-    if (!slots) return {}
-    return Object.fromEntries(slots.map(s => [s.slot_label, s]))
-  }, [slots])
-
   function getTeamsForSlot(slot) {
     const resolve = source => qualifiersMap[source] ?? picks[slotsByLabel[source]?.slot_id] ?? null
     return { homeTeam: resolve(slot.home_source), awayTeam: resolve(slot.away_source) }
