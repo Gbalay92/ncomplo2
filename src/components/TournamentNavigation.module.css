@@ -95,3 +95,13 @@
     color: #e53935;
   }
 }
+
+.groupWord {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .groupWord {
+    display: inline;
+  }
+}

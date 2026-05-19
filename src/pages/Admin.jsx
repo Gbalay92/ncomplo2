@@ -111,16 +111,18 @@ export default function Admin() {
                 <h2>Group Stage Results</h2>
                 <p className={styles.progress}>{filledCount} / {allMatches.length} results entered</p>
 
-                <nav className={navStyles.groupsNav}>
-                    {Object.keys(groupedMatches).map(name => (
-                        <button
-                            key={name}
-                            className={activeGroup === name ? navStyles.active : ''}
-                            onClick={() => setActiveGroup(name)}
-                        >
-                            {name}
-                        </button>
-                    ))}
+                <nav className={navStyles.stageNav}>
+                    <div className={navStyles.stageRow}>
+                        {Object.keys(groupedMatches).map(name => (
+                            <button
+                                key={name}
+                                className={activeGroup === name ? navStyles.active : ''}
+                                onClick={() => setActiveGroup(name)}
+                            >
+                                <span className={navStyles.groupWord}>Group </span>{name.replace('Group ', '')}
+                            </button>
+                        ))}
+                    </div>
                 </nav>
 
                 <div className={styles.matchList}>
