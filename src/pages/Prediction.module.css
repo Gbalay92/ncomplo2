@@ -32,7 +32,7 @@
   }
 
   .standingsPanel {
-    width: 220px;
+    width: 360px;
     flex-shrink: 0;
     position: sticky;
     top: 1rem;
