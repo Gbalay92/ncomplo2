@@ -1,12 +1,13 @@
 
 
 .loginContainer {
-    height: 80vh;
+    min-height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient( var(--primary),var(--background) );
     background-size: cover;
+    padding: 1rem;
 }
 
 
@@ -30,7 +31,7 @@
 }
 
 .loginCard {
-    width: 24rem;
+    width: min(24rem, 100%);
     padding: 32px;
     background-color: var(--card-bg);
     border-radius: 12px;
