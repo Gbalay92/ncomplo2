@@ -102,7 +102,7 @@ export default function Admin() {
                                 className={activeGroup === name ? navStyles.active : ''}
                                 onClick={() => setActiveGroup(name)}
                             >
-                                {name}
+                                <span className={navStyles.groupWord}>Group </span>{name.replace('Group ', '')}
                             </button>
                         ))}
                     </div>
