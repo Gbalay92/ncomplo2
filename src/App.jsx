@@ -12,6 +12,7 @@ const PredictionPage = lazy(() => import('./pages/Prediction.jsx'))
 const LoginPage = lazy(() => import('./pages/Login.jsx'))
 const RegisterPage = lazy(() => import('./pages/Register.jsx'))
 const AdminPage = lazy(() => import('./pages/Admin.jsx'))
+const ProfilePage = lazy(() => import('./pages/Profile.jsx'))
 
 function App() {
   const { navigateTo } = useRouter()
@@ -27,6 +28,7 @@ function App() {
           <Route path="/prediction" element={<ProtectedRoute><PredictionPage /></ProtectedRoute>} />
           <Route path="/register" element={<RegisterPage onNavigateToLogin={() => navigateTo('/login')} />} />
           <Route path="/admin" element={<ProtectedAdminRoute><AdminPage /></ProtectedAdminRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         </Routes>
       </>
   )
