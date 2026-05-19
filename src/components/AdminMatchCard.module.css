@@ -155,3 +155,52 @@
     color: #f44336;
     text-align: center;
 }
+
+.unseeded {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.tbd {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    width: 32px;
+    text-align: center;
+}
+
+.penaltyRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.penaltyLabel {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.penaltyBtn {
+    flex: 1;
+    padding: 0.4rem 0.75rem;
+    border: 0.15rem solid var(--border);
+    border-radius: 2rem;
+    background: var(--input-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s ease;
+}
+
+.penaltyBtn:hover {
+    border-color: var(--primary-light);
+    color: var(--text-primary);
+}
+
+.penaltySelected {
+    background-color: var(--selected);
+    border-color: var(--primary-light);
+    color: var(--text-primary);
+    font-weight: 600;
+}
