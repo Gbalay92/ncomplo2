@@ -135,3 +135,17 @@
   border-color: var(--primary-light);
   box-shadow: 0 0 0 3px var(--hsla-example);
 }
+
+.avatarInitial {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
