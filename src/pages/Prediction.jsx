@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react"
 import { getMatches } from "../api/matches.js"
 import { getMyPredictions, savePredictions } from "../api/predictions.js"
-import { getMyQualifiers, getMyBracket, saveMyBracket } from "../api/bracket.js"
+import { getMyBracket, saveMyBracket } from "../api/bracket.js"
 import { getTournamentSettings } from "../api/tournament.js"
 import { MatchCard } from "../components/MatchCard.jsx"
 import { BracketMatchCard } from "../components/BracketMatchCard.jsx"
+import { GroupStandings } from "../components/GroupStandings.jsx"
 import styles from './Prediction.module.css'
 import navStyles from '../components/TournamentNavigation.module.css'
 
@@ -20,19 +21,78 @@ function isFilled(v) {
   return v && v.home !== '' && v.away !== '' && !isNaN(parseInt(v.home, 10)) && !isNaN(parseInt(v.away, 10))
 }
 
-function buildQualifiersMap(qualifiers) {
-  const map = {}
-  const thirds = []
-  for (const q of qualifiers) {
-    if (q.position <= 2) map[`${q.position}${q.group_name}`] = q
-    else if (q.position === 3) thirds.push(q)
+function computeGroupStandings(matches, values) {
+  const teams = {}
+
+  for (const match of matches) {
+    if (!teams[match.home_team_id]) {
+      teams[match.home_team_id] = {
+        team_id: match.home_team_id, name: match.home_team, flag_url: match.home_flag,
+        pts: 0, w: 0, d: 0, l: 0, gf: 0, gc: 0, gd: 0,
+      }
+    }
+    if (!teams[match.away_team_id]) {
+      teams[match.away_team_id] = {
+        team_id: match.away_team_id, name: match.away_team, flag_url: match.away_flag,
+        pts: 0, w: 0, d: 0, l: 0, gf: 0, gc: 0, gd: 0,
+      }
+    }
+
+    const val = values[match.id]
+    if (!isFilled(val)) continue
+
+    const hg = parseInt(val.home, 10)
+    const ag = parseInt(val.away, 10)
+
+    teams[match.home_team_id].gf += hg
+    teams[match.home_team_id].gc += ag
+    teams[match.home_team_id].gd += hg - ag
+    teams[match.away_team_id].gf += ag
+    teams[match.away_team_id].gc += hg
+    teams[match.away_team_id].gd += ag - hg
+
+    if (hg > ag) {
+      teams[match.home_team_id].pts += 3; teams[match.home_team_id].w++
+      teams[match.away_team_id].l++
+    } else if (ag > hg) {
+      teams[match.away_team_id].pts += 3; teams[match.away_team_id].w++
+      teams[match.home_team_id].l++
+    } else {
+      teams[match.home_team_id].pts++; teams[match.home_team_id].d++
+      teams[match.away_team_id].pts++; teams[match.away_team_id].d++
+    }
   }
-  thirds
-    .sort((a, b) => b.pred_points - a.pred_points || b.pred_gd - a.pred_gd || b.pred_gf - a.pred_gf)
-    .forEach((q, i) => { map[`3rd_${i + 1}`] = q })
-  return map
+
+  return Object.values(teams).sort((a, b) =>
+    b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.name.localeCompare(b.name)
+  )
 }
 
+function buildLiveQualifiersMap(groupedMatches, values) {
+  const map = {}
+  const thirds = []
+
+  for (const [groupKey, matches] of Object.entries(groupedMatches)) {
+    const groupName = groupKey.replace('Group ', '')
+    const standings = computeGroupStandings(matches, values)
+
+    standings.forEach((team, i) => {
+      const pos = i + 1
+      if (pos <= 2) {
+        map[`${pos}${groupName}`] = team
+      } else if (pos === 3) {
+        thirds.push({ ...team, group_name: groupName })
+      }
+    })
+  }
+
+  thirds
+    .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf)
+    .slice(0, 8)
+    .forEach((t, i) => { map[`3rd_${i + 1}`] = t })
+
+  return map
+}
 
 export default function Prediction() {
   // ── Group stage ──────────────────────────────────────────────
@@ -40,12 +100,9 @@ export default function Prediction() {
   const [values, setValues] = useState({})
   const [savedValues, setSavedValues] = useState({})
   const [saveGroupStatus, setSaveGroupStatus] = useState(null)
-  const [incompleteIds, setIncompleteIds] = useState(new Set())
-  const [bracketAvailable, setBracketAvailable] = useState(false)
 
   // ── Bracket ──────────────────────────────────────────────────
   const [slots, setSlots] = useState(null)
-  const [qualifiers, setQualifiers] = useState(null)
   const [picks, setPicks] = useState({})
   const [savedPicks, setSavedPicks] = useState({})
   const [saveBracketStatus, setSaveBracketStatus] = useState(null)
@@ -56,8 +113,8 @@ export default function Prediction() {
   const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
-    Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings()])
-      .then(([matches, preds, settings]) => {
+    Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings(), getMyBracket()])
+      .then(([matches, preds, settings, bracket]) => {
         setPredictionsLocked(settings.predictions_locked)
 
         const grouped = {}
@@ -75,16 +132,7 @@ export default function Prediction() {
         }
         setValues(initial)
         setSavedValues(initial)
-        setBracketAvailable(preds.length === matches.length)
-      })
-      .catch(() => setLoadError('Failed to load data'))
-  }, [])
 
-  useEffect(() => {
-    if (!bracketAvailable) return
-    Promise.all([getMyQualifiers(), getMyBracket()])
-      .then(([quals, bracket]) => {
-        setQualifiers(quals)
         setSlots(bracket)
         const initialPicks = {}
         for (const slot of bracket) {
@@ -99,8 +147,14 @@ export default function Prediction() {
         setPicks(initialPicks)
         setSavedPicks(initialPicks)
       })
-      .catch(() => {})
-  }, [bracketAvailable])
+      .catch(() => setLoadError('Failed to load data'))
+  }, [])
+
+  // ── Live qualifiers from current predictions ─────────────────
+  const qualifiersMap = useMemo(() => {
+    if (!groupedMatches) return {}
+    return buildLiveQualifiersMap(groupedMatches, values)
+  }, [groupedMatches, values])
 
   // ── Group handlers ───────────────────────────────────────────
   function handleChange(matchId, home, away) {
@@ -108,22 +162,18 @@ export default function Prediction() {
   }
 
   async function handleSaveGroup() {
-    setIncompleteIds(new Set())
     setSaveGroupStatus(null)
 
     const allMatches = Object.values(groupedMatches).flat()
-    const missing = new Set(allMatches.filter(m => !isFilled(values[m.id])).map(m => m.id))
-    if (missing.size > 0) {
-      setIncompleteIds(missing)
-      return
-    }
+    const filledMatches = allMatches.filter(m => isFilled(values[m.id]))
+    if (!filledMatches.length) return
 
     const hasBracketPicks = Object.keys(picks).length > 0
-    if (hasBracketPicks) {
-      if (!confirm('Saving group predictions will clear your entire bracket. Continue?')) return
+    if (hasBracketPicks && isGroupDirty) {
+      if (!confirm('Saving group predictions will clear your bracket. Continue?')) return
     }
 
-    const payload = allMatches.map(m => ({
+    const payload = filledMatches.map(m => ({
       match_id: m.id,
       pred_home_goals: parseInt(values[m.id].home, 10),
       pred_away_goals: parseInt(values[m.id].away, 10),
@@ -133,13 +183,12 @@ export default function Prediction() {
     try {
       await savePredictions(payload)
       setSavedValues(values)
-      if (hasBracketPicks) {
+      if (hasBracketPicks && isGroupDirty) {
         await saveMyBracket([])
         setPicks({})
         setSavedPicks({})
       }
       setSaveGroupStatus('saved')
-      setBracketAvailable(true)
       setTimeout(() => setSaveGroupStatus(null), 2000)
     } catch {
       setSaveGroupStatus('error')
@@ -147,11 +196,6 @@ export default function Prediction() {
   }
 
   // ── Bracket handlers ─────────────────────────────────────────
-  const qualifiersMap = useMemo(() => {
-    if (!qualifiers) return {}
-    return buildQualifiersMap(qualifiers)
-  }, [qualifiers])
-
   const slotsByLabel = useMemo(() => {
     if (!slots) return {}
     return Object.fromEntries(slots.map(s => [s.slot_label, s]))
@@ -199,22 +243,18 @@ export default function Prediction() {
 
   // ── Render ───────────────────────────────────────────────────
   if (loadError) return <p>{loadError}</p>
-  if (!groupedMatches) return <p>Loading…</p>
+  if (!groupedMatches || !slots) return <p>Loading…</p>
 
   const groupNames = Object.keys(groupedMatches)
   const isBracketTab = BRACKET_STAGES.some(s => s.key === activeTab)
   const isGroupTab = !isBracketTab
 
-  const incompleteGroups = new Set(
-    groupNames.filter(name => groupedMatches[name].some(m => incompleteIds.has(m.id)))
-  )
-
   const activeGroupMatches = isGroupTab ? (groupedMatches[activeTab] ?? []) : []
-  const activeBracketSlots = isBracketTab && slots ? slots.filter(s => s.stage === activeTab) : []
+  const activeBracketSlots = isBracketTab ? slots.filter(s => s.stage === activeTab) : []
 
   const allTabs = [
     ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' })),
-    ...(bracketAvailable ? BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' })) : []),
+    ...BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' })),
   ]
   const activeIndex = allTabs.findIndex(t => t.key === activeTab)
   const activeTabMeta = allTabs[activeIndex]
@@ -236,6 +276,10 @@ export default function Prediction() {
     Object.fromEntries(Object.entries(savedPicks).map(([k, v]) => [k, v.team_id]))
   )
 
+  const activeStandings = isGroupTab && activeTab
+    ? computeGroupStandings(groupedMatches[activeTab] ?? [], values)
+    : []
+
   return (
     <>
       <main style={{ paddingBottom: '5rem' }}>
@@ -247,30 +291,25 @@ export default function Prediction() {
               {groupNames.map(name => (
                 <button
                   key={name}
-                  className={[
-                    activeTab === name ? navStyles.active : '',
-                    incompleteGroups.has(name) ? navStyles.incomplete : '',
-                  ].join(' ')}
+                  className={activeTab === name ? navStyles.active : ''}
                   onClick={() => setActiveTab(name)}
                 >
                   {name.replace('Group ', '')}
                 </button>
               ))}
             </div>
-            {bracketAvailable && (
-              <div className={navStyles.stageRow}>
-                <span className={navStyles.stageLabel}>Knockout</span>
-                {BRACKET_STAGES.map(({ key, label }) => (
-                  <button
-                    key={key}
-                    className={activeTab === key ? navStyles.active : ''}
-                    onClick={() => setActiveTab(key)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className={navStyles.stageRow}>
+              <span className={navStyles.stageLabel}>Knockout</span>
+              {BRACKET_STAGES.map(({ key, label }) => (
+                <button
+                  key={key}
+                  className={activeTab === key ? navStyles.active : ''}
+                  onClick={() => setActiveTab(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Mobile: pagination */}
@@ -297,11 +336,10 @@ export default function Prediction() {
                 match={match}
                 value={values[match.id]}
                 onChange={handleChange}
-                incomplete={incompleteIds.has(match.id)}
                 readOnly={predictionsLocked}
-
               />
             ))}
+            <GroupStandings standings={activeStandings} />
           </div>
         )}
 
@@ -326,9 +364,15 @@ export default function Prediction() {
 
       {isGroupTab && !predictionsLocked && (
         <div className={styles.saveBar}>
-          {incompleteIds.size > 0 && <p className={styles.saveError}>Fill in all matches before saving</p>}
-          <button className={styles.saveBtn} onClick={handleSaveGroup} disabled={saveGroupStatus === 'saving' || !isGroupDirty}>
-            {saveGroupStatus === 'saving' ? 'Saving…' : saveGroupStatus === 'saved' ? '✓ Saved' : saveGroupStatus === 'error' ? 'Error — retry' : 'Save predictions'}
+          <button
+            className={styles.saveBtn}
+            onClick={handleSaveGroup}
+            disabled={saveGroupStatus === 'saving' || !isGroupDirty}
+          >
+            {saveGroupStatus === 'saving' ? 'Saving…'
+              : saveGroupStatus === 'saved' ? '✓ Saved'
+              : saveGroupStatus === 'error' ? 'Error — retry'
+              : 'Save predictions'}
           </button>
         </div>
       )}
@@ -341,8 +385,15 @@ export default function Prediction() {
 
       {isBracketTab && !predictionsLocked && (
         <div className={styles.saveBar}>
-          <button className={styles.saveBtn} onClick={handleSaveBracket} disabled={saveBracketStatus === 'saving' || !isBracketDirty}>
-            {saveBracketStatus === 'saving' ? 'Saving…' : saveBracketStatus === 'saved' ? '✓ Saved' : saveBracketStatus === 'error' ? 'Error — retry' : 'Save bracket'}
+          <button
+            className={styles.saveBtn}
+            onClick={handleSaveBracket}
+            disabled={saveBracketStatus === 'saving' || !isBracketDirty}
+          >
+            {saveBracketStatus === 'saving' ? 'Saving…'
+              : saveBracketStatus === 'saved' ? '✓ Saved'
+              : saveBracketStatus === 'error' ? 'Error — retry'
+              : 'Save bracket'}
           </button>
         </div>
       )}
