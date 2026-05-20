@@ -30,13 +30,13 @@ export function BracketMatchCard({ slot, homeTeam, awayTeam, pickedTeamId, onPic
       <div className={styles.teams}>
         <TeamOption
           team={homeTeam}
-          selected={pickedTeamId === homeTeam?.team_id}
+          selected={pickedTeamId != null && pickedTeamId === homeTeam?.team_id}
           onClick={() => onPick(homeTeam)}
         />
         <span className={styles.vs}>vs</span>
         <TeamOption
           team={awayTeam}
-          selected={pickedTeamId === awayTeam?.team_id}
+          selected={pickedTeamId != null && pickedTeamId === awayTeam?.team_id}
           onClick={() => onPick(awayTeam)}
         />
       </div>
