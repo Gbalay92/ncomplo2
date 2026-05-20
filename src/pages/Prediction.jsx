@@ -302,6 +302,16 @@ export default function Prediction() {
     ? computeGroupStandings(groupedMatches[activeTab] ?? [], values)
     : []
 
+  const warnedTabs = showWarnings ? new Set([
+    ...groupNames.filter(name => groupedMatches[name].some(m => !isFilled(values[m.id]))),
+    ...BRACKET_STAGES.filter(({ key }) =>
+      slots.filter(s => s.stage === key).some(s => {
+        const { homeTeam, awayTeam } = getTeamsForSlot(s)
+        return (homeTeam || awayTeam) && !picks[s.slot_id]
+      })
+    ).map(s => s.key),
+  ]) : new Set()
+
   return (
     <>
       <main style={{ paddingBottom: '5rem' }}>
@@ -313,7 +323,7 @@ export default function Prediction() {
               {groupNames.map(name => (
                 <button
                   key={name}
-                  className={activeTab === name ? navStyles.active : ''}
+                  className={[activeTab === name ? navStyles.active : '', warnedTabs.has(name) ? navStyles.incomplete : ''].join(' ')}
                   onClick={() => setActiveTab(name)}
                 >
                   {name.replace('Group ', '')}
@@ -325,7 +335,7 @@ export default function Prediction() {
               {BRACKET_STAGES.map(({ key, label }) => (
                 <button
                   key={key}
-                  className={activeTab === key ? navStyles.active : ''}
+                  className={[activeTab === key ? navStyles.active : '', warnedTabs.has(key) ? navStyles.incomplete : ''].join(' ')}
                   onClick={() => setActiveTab(key)}
                 >
                   {label}
@@ -341,7 +351,7 @@ export default function Prediction() {
               onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
               disabled={activeIndex === 0}
             >◀</button>
-            <span className={navStyles.pagerLabel}>{paginationLabel}</span>
+            <span className={`${navStyles.pagerLabel} ${warnedTabs.has(activeTab) ? navStyles.pagerLabelWarn : ''}`}>{paginationLabel}</span>
             <button
               className={navStyles.pagerBtn}
               onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
