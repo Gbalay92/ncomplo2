@@ -218,8 +218,10 @@ export default function Prediction() {
       const parts = []
       if (unfilledGroups > 0) parts.push(`${unfilledGroups} partido${unfilledGroups > 1 ? 's' : ''} de grupos sin resultado`)
       if (unpickedSlots > 0) parts.push(`${unpickedSlots} cruce${unpickedSlots > 1 ? 's' : ''} sin ganador`)
-      setShowWarnings(true)
-      if (!confirm(`${parts.join(' y ')}. ¿Guardar igualmente?`)) return
+      if (!confirm(`${parts.join(' y ')}. ¿Guardar igualmente?`)) {
+        setShowWarnings(true)
+        return
+      }
     }
 
     setSaveStatus('saving')
