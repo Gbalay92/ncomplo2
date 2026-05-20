@@ -222,6 +222,7 @@ export default function Prediction() {
         setShowWarnings(true)
         return
       }
+      setShowWarnings(false)
     }
 
     setSaveStatus('saving')
