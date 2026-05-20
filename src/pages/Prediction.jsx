@@ -167,10 +167,9 @@ export default function Prediction() {
   useEffect(() => {
     if (!slots) return
     setPicks(prev => {
-      // resolved maps source label → team that advances from that source.
-      // Seeded with group qualifiers (e.g. '1A' → Spain), then extended
-      // with each valid bracket pick as we walk R32 → R16 → QF → SF → Final.
       const resolved = { ...qualifiersMap }
+      // slot_labels that were cleared this run — used to propagate downstream
+      const cleared = new Set()
       let next = { ...prev }
       let changed = false
 
@@ -179,15 +178,20 @@ export default function Prediction() {
           const home = resolved[slot.home_source] ?? null
           const away = resolved[slot.away_source] ?? null
           const pick = next[slot.slot_id]
+          const sourceCleared = cleared.has(slot.home_source) || cleared.has(slot.away_source)
 
           if (pick) {
             const valid = new Set([home?.team_id, away?.team_id].filter(Boolean))
-            if (!valid.has(pick.team_id)) {
+            if (sourceCleared || !valid.has(pick.team_id)) {
               delete next[slot.slot_id]
+              cleared.add(slot.slot_label)
               changed = true
             } else {
               resolved[slot.slot_label] = pick
             }
+          } else if (sourceCleared) {
+            // no pick here, but propagate affected status so downstream slots clear too
+            cleared.add(slot.slot_label)
           }
         }
       }
