@@ -46,6 +46,10 @@
   color: var(--text-primary);
 }
 
+.pagerLabelWarn {
+  color: #eab308;
+}
+
 @media (min-width: 640px) {
   .desktopNav {
     display: flex;
@@ -91,8 +95,8 @@
   }
 
   &.incomplete {
-    border-color: #e53935;
-    color: #e53935;
+    border-color: #eab308;
+    color: #eab308;
   }
 }
 
