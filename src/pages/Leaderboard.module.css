@@ -37,6 +37,8 @@
   gap: 0.4rem;
   position: relative;
   transition: transform 0.2s ease;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .podiumStep:hover {
