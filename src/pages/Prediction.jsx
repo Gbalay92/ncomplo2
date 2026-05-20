@@ -136,6 +136,7 @@ export default function Prediction() {
   const [picks, setPicks] = useState({})
   const [savedPicks, setSavedPicks] = useState({})
   const [saveStatus, setSaveStatus] = useState(null)
+  const [showWarnings, setShowWarnings] = useState(false)
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
@@ -207,6 +208,20 @@ export default function Prediction() {
   }
 
   async function handleSave() {
+    const unfilledGroups = Object.values(groupedMatches).flat().filter(m => !isFilled(values[m.id])).length
+    const unpickedSlots = slots.filter(s => {
+      const { homeTeam, awayTeam } = getTeamsForSlot(s)
+      return homeTeam && awayTeam && !picks[s.slot_id]
+    }).length
+
+    if (unfilledGroups > 0 || unpickedSlots > 0) {
+      const parts = []
+      if (unfilledGroups > 0) parts.push(`${unfilledGroups} partido${unfilledGroups > 1 ? 's' : ''} de grupos sin resultado`)
+      if (unpickedSlots > 0) parts.push(`${unpickedSlots} cruce${unpickedSlots > 1 ? 's' : ''} sin ganador`)
+      setShowWarnings(true)
+      if (!confirm(`${parts.join(' y ')}. ¿Guardar igualmente?`)) return
+    }
+
     setSaveStatus('saving')
     try {
       if (isGroupDirty) {
@@ -228,6 +243,7 @@ export default function Prediction() {
         setSavedPicks(picks)
       }
       setSaveStatus('saved')
+      setShowWarnings(false)
       setTimeout(() => setSaveStatus(null), 2000)
     } catch {
       setSaveStatus('error')
@@ -344,6 +360,7 @@ export default function Prediction() {
                   value={values[match.id]}
                   onChange={handleChange}
                   readOnly={predictionsLocked}
+                  incomplete={showWarnings && !isFilled(values[match.id])}
                 />
               ))}
             </div>
@@ -365,6 +382,7 @@ export default function Prediction() {
                   awayTeam={awayTeam}
                   pickedTeamId={picks[slot.slot_id]?.team_id}
                   onPick={predictionsLocked ? undefined : team => handlePick(slot, team)}
+                  warn={showWarnings && !!homeTeam && !!awayTeam && !picks[slot.slot_id]}
                 />
               )
             })}

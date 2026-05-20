@@ -74,6 +74,10 @@
     opacity: 0.4;
 }
 
+.warn {
+    border-color: #eab308;
+}
+
 .tbdLabel {
     color: var(--text-muted);
     font-style: italic;

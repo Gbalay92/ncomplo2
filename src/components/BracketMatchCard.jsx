@@ -21,11 +21,11 @@ function TeamOption({ team, selected, onClick }) {
   )
 }
 
-export function BracketMatchCard({ slot, homeTeam, awayTeam, pickedTeamId, onPick }) {
+export function BracketMatchCard({ slot, homeTeam, awayTeam, pickedTeamId, onPick, warn = false }) {
   const bothKnown = homeTeam && awayTeam
 
   return (
-    <article className={`${styles.card} ${!bothKnown ? styles.locked : ''}`}>
+    <article className={`${styles.card} ${!bothKnown ? styles.locked : ''} ${warn ? styles.warn : ''}`}>
       <div className={styles.matchLabel}>{slot.slot_label}</div>
       <div className={styles.teams}>
         <TeamOption
