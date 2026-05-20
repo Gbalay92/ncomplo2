@@ -131,13 +131,11 @@ export default function Prediction() {
   const [groupedMatches, setGroupedMatches] = useState(null)
   const [values, setValues] = useState({})
   const [savedValues, setSavedValues] = useState({})
-  const [saveGroupStatus, setSaveGroupStatus] = useState(null)
-
   // ── Bracket ──────────────────────────────────────────────────
   const [slots, setSlots] = useState(null)
   const [picks, setPicks] = useState({})
   const [savedPicks, setSavedPicks] = useState({})
-  const [saveBracketStatus, setSaveBracketStatus] = useState(null)
+  const [saveStatus, setSaveStatus] = useState(null)
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
@@ -208,41 +206,35 @@ export default function Prediction() {
     setValues(prev => ({ ...prev, [matchId]: { home, away } }))
   }
 
-  async function handleSaveGroup() {
-    setSaveGroupStatus(null)
-
-    const allMatches = Object.values(groupedMatches).flat()
-    const filledMatches = allMatches.filter(m => isFilled(values[m.id]))
-    if (!filledMatches.length) return
-
-    const hasBracketPicks = Object.keys(picks).length > 0
-    if (hasBracketPicks && isGroupDirty) {
-      if (!confirm('Saving group predictions will clear your bracket. Continue?')) return
-    }
-
-    const payload = filledMatches.map(m => ({
-      match_id: m.id,
-      pred_home_goals: parseInt(values[m.id].home, 10),
-      pred_away_goals: parseInt(values[m.id].away, 10),
-    }))
-
-    setSaveGroupStatus('saving')
+  async function handleSave() {
+    setSaveStatus('saving')
     try {
-      await savePredictions(payload)
-      setSavedValues(values)
-      if (hasBracketPicks && isGroupDirty) {
-        await saveMyBracket([])
-        setPicks({})
-        setSavedPicks({})
+      if (isGroupDirty) {
+        const filledMatches = Object.values(groupedMatches).flat().filter(m => isFilled(values[m.id]))
+        if (filledMatches.length) {
+          await savePredictions(filledMatches.map(m => ({
+            match_id: m.id,
+            pred_home_goals: parseInt(values[m.id].home, 10),
+            pred_away_goals: parseInt(values[m.id].away, 10),
+          })))
+          setSavedValues(values)
+        }
       }
-      setSaveGroupStatus('saved')
-      setTimeout(() => setSaveGroupStatus(null), 2000)
+      if (isBracketDirty) {
+        await saveMyBracket(Object.entries(picks).map(([slot_id, team]) => ({
+          slot_id,
+          pred_winner_id: team.team_id,
+        })))
+        setSavedPicks(picks)
+      }
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus(null), 2000)
     } catch {
-      setSaveGroupStatus('error')
+      setSaveStatus('error')
     }
   }
 
-  // ── Bracket handlers ─────────────────────────────────────────
+  // ── Bracket helpers ──────────────────────────────────────────
   function getTeamsForSlot(slot) {
     const resolve = source => qualifiersMap[source] ?? picks[slotsByLabel[source]?.slot_id] ?? null
     return { homeTeam: resolve(slot.home_source), awayTeam: resolve(slot.away_source) }
@@ -253,22 +245,6 @@ export default function Prediction() {
       const { next } = applyBracketCascade({ ...prev, [slot.slot_id]: team }, qualifiersMap, slots)
       return next
     })
-  }
-
-  async function handleSaveBracket() {
-    const payload = Object.entries(picks).map(([slot_id, team]) => ({
-      slot_id,
-      pred_winner_id: team.team_id,
-    }))
-    setSaveBracketStatus('saving')
-    try {
-      await saveMyBracket(payload)
-      setSavedPicks(picks)
-      setSaveBracketStatus('saved')
-      setTimeout(() => setSaveBracketStatus(null), 2000)
-    } catch {
-      setSaveBracketStatus('error')
-    }
   }
 
   // ── Render ───────────────────────────────────────────────────
@@ -396,41 +372,22 @@ export default function Prediction() {
         )}
       </main>
 
-      {isGroupTab && !predictionsLocked && (
-        <div className={styles.saveBar}>
+      <div className={styles.saveBar}>
+        {predictionsLocked ? (
+          <p className={styles.saveError}>Predictions are locked</p>
+        ) : (
           <button
             className={styles.saveBtn}
-            onClick={handleSaveGroup}
-            disabled={saveGroupStatus === 'saving' || !isGroupDirty}
+            onClick={handleSave}
+            disabled={saveStatus === 'saving' || (!isGroupDirty && !isBracketDirty)}
           >
-            {saveGroupStatus === 'saving' ? 'Saving…'
-              : saveGroupStatus === 'saved' ? '✓ Saved'
-              : saveGroupStatus === 'error' ? 'Error — retry'
+            {saveStatus === 'saving' ? 'Saving…'
+              : saveStatus === 'saved' ? '✓ Saved'
+              : saveStatus === 'error' ? 'Error — retry'
               : 'Save predictions'}
           </button>
-        </div>
-      )}
-
-      {predictionsLocked && (
-        <div className={styles.saveBar}>
-          <p className={styles.saveError}>Predictions are locked</p>
-        </div>
-      )}
-
-      {isBracketTab && !predictionsLocked && (
-        <div className={styles.saveBar}>
-          <button
-            className={styles.saveBtn}
-            onClick={handleSaveBracket}
-            disabled={saveBracketStatus === 'saving' || !isBracketDirty}
-          >
-            {saveBracketStatus === 'saving' ? 'Saving…'
-              : saveBracketStatus === 'saved' ? '✓ Saved'
-              : saveBracketStatus === 'error' ? 'Error — retry'
-              : 'Save bracket'}
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </>
   )
 }
