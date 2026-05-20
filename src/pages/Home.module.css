@@ -97,8 +97,62 @@ main > section > img{
 .matchList {
 	display: flex;
 	flex-direction: column;
-	gap: 0.75rem;
+	gap: 0;
 	width: 100%;
+	border: 1px solid var(--border);
+	border-radius: 0.75rem;
+	overflow: hidden;
+}
+
+.matchRow {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.6rem 0.75rem;
+	background: var(--card-bg);
+	font-size: 0.9rem;
+
+	& + & {
+		border-top: 1px solid var(--border);
+	}
+}
+
+.matchTeam {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	color: var(--text-primary);
+
+	& span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.matchTeamRight {
+	flex-direction: row-reverse;
+	text-align: right;
+}
+
+.matchCenter {
+	min-width: 4rem;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.matchScore {
+	font-weight: 700;
+	font-size: 1rem;
+	color: var(--text-primary);
+}
+
+.matchTime {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--text-muted);
 }
 
 .podiumWidget {
