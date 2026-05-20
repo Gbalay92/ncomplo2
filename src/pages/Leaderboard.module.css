@@ -39,6 +39,9 @@
   transition: transform 0.2s ease;
   text-decoration: none;
   cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
 }
 
 .podiumStep:hover {

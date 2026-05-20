@@ -3,11 +3,13 @@ import styles from './Leaderboard.module.css'
 import { getLeaderboard } from '../api/leaderboard.js'
 import { UserLeaderboardCard } from '../components/UserLeaderboardCard'
 import { Podium } from '../components/Podium'
+import { PredictionsModal } from '../components/PredictionsModal'
 
 export default function Leaderboard() {
   const [leaderboardData, setLeaderboardData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [selectedUser, setSelectedUser] = useState(null)
 
   useEffect(() => {
     getLeaderboard()
@@ -30,7 +32,7 @@ export default function Leaderboard() {
         <p className={styles.empty}>No predictions yet. Be the first!</p>
       ) : (
         <>
-          <Podium users={topThree} />
+          <Podium users={topThree} onSelect={setSelectedUser} />
           {theRest.length > 0 && (
             <div className={styles.list}>
               {theRest.map(entry => (
@@ -39,6 +41,10 @@ export default function Leaderboard() {
             </div>
           )}
         </>
+      )}
+
+      {selectedUser && (
+        <PredictionsModal user={selectedUser} onClose={() => setSelectedUser(null)} />
       )}
     </div>
   )
