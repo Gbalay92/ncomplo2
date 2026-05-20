@@ -93,6 +93,14 @@
   margin: 0;
 }
 
+.nextLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .matchList {
   display: flex;
   flex-direction: column;

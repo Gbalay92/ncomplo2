@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom'
 import styles from './UserLeaderboardCard.module.css'
 import { getUserTodayPredictions } from '../api/users.js'
 
+function isToday(dateStr) {
+  return new Date(dateStr).toDateString() === new Date().toDateString()
+}
+
 function PredictionMatchRow({ match }) {
   const hasPred = match.pred_home_goals != null && match.pred_away_goals != null
 
@@ -44,6 +48,8 @@ export function UserLeaderboardCard({ user }) {
     setExpanded(v => !v)
   }
 
+  const showingNext = predictions?.length > 0 && !isToday(predictions[0].match_date)
+
   return (
     <div className={styles.wrapper}>
       <button className={styles.card} onClick={handleToggle}>
@@ -58,10 +64,11 @@ export function UserLeaderboardCard({ user }) {
         <div className={styles.expand}>
           {loading ? (
             <p className={styles.expandMsg}>Cargando…</p>
-          ) : predictions === null || predictions.length === 0 ? (
+          ) : !predictions || predictions.length === 0 ? (
             <p className={styles.expandMsg}>Sin predicciones disponibles</p>
           ) : (
             <>
+              {showingNext && <span className={styles.nextLabel}>Próximo partido</span>}
               <div className={styles.matchList}>
                 {predictions.map(m => (
                   <PredictionMatchRow key={m.id} match={m} />
