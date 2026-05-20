@@ -7,8 +7,13 @@ import { getLeaderboard } from '../api/leaderboard.js'
 import { getTodayMatches } from '../api/matches.js'
 import { getTournamentSettings } from '../api/tournament.js'
 
-function formatTime(dateStr) {
-    return new Date(dateStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
+function formatDateTime(dateStr) {
+    const date = new Date(dateStr)
+    const isToday = date.toDateString() === new Date().toDateString()
+    const time = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
+    if (isToday) return time
+    const day = date.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
+    return `${day} ${time}`
 }
 
 function CompactMatchRow({ match }) {
@@ -22,7 +27,7 @@ function CompactMatchRow({ match }) {
             <div className={styles.matchCenter}>
                 {hasResult
                     ? <span className={styles.matchScore}>{match.real_home_goals} – {match.real_away_goals}</span>
-                    : <span className={styles.matchTime}>{formatTime(match.match_date)}</span>
+                    : <span className={styles.matchTime}>{formatDateTime(match.match_date)}</span>
                 }
             </div>
             <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
