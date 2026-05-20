@@ -6,6 +6,12 @@ export async function getNextMatch() {
   return res.json()
 }
 
+export async function getTodayMatches() {
+  const res = await get('/matches/today')
+  if (!res.ok) throw new Error('Failed to fetch today matches')
+  return res.json()
+}
+
 export async function getMatches(group, phase = 'group') {
   const params = new URLSearchParams()
   if (group) params.set('group', group)
