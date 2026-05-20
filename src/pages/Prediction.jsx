@@ -165,27 +165,36 @@ export default function Prediction() {
 
   // ── Cascade-clear picks when qualifiers change ───────────────
   useEffect(() => {
-    if (!slots || !slotsByLabel) return
+    if (!slots) return
     setPicks(prev => {
+      // resolved maps source label → team that advances from that source.
+      // Seeded with group qualifiers (e.g. '1A' → Spain), then extended
+      // with each valid bracket pick as we walk R32 → R16 → QF → SF → Final.
+      const resolved = { ...qualifiersMap }
       let next = { ...prev }
       let changed = false
+
       for (const { key: stage } of BRACKET_STAGES) {
         for (const slot of slots.filter(s => s.stage === stage)) {
+          const home = resolved[slot.home_source] ?? null
+          const away = resolved[slot.away_source] ?? null
           const pick = next[slot.slot_id]
-          if (!pick) continue
-          const resolve = src => qualifiersMap[src] ?? next[slotsByLabel[src]?.slot_id] ?? null
-          const home = resolve(slot.home_source)
-          const away = resolve(slot.away_source)
-          const valid = new Set([home?.team_id, away?.team_id].filter(Boolean))
-          if (!valid.has(pick.team_id)) {
-            delete next[slot.slot_id]
-            changed = true
+
+          if (pick) {
+            const valid = new Set([home?.team_id, away?.team_id].filter(Boolean))
+            if (!valid.has(pick.team_id)) {
+              delete next[slot.slot_id]
+              changed = true
+            } else {
+              resolved[slot.slot_label] = pick
+            }
           }
         }
       }
+
       return changed ? next : prev
     })
-  }, [qualifiersMap, slots, slotsByLabel])
+  }, [qualifiersMap, slots])
 
   // ── Group handlers ───────────────────────────────────────────
   function handleChange(matchId, home, away) {
