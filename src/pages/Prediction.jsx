@@ -68,6 +68,37 @@ function computeGroupStandings(matches, values) {
   )
 }
 
+function applyBracketCascade(picks, qualifiersMap, slots) {
+  const resolved = { ...qualifiersMap }
+  const cleared = new Set()
+  const next = { ...picks }
+  let changed = false
+
+  for (const { key: stage } of BRACKET_STAGES) {
+    for (const slot of slots.filter(s => s.stage === stage)) {
+      const home = resolved[slot.home_source] ?? null
+      const away = resolved[slot.away_source] ?? null
+      const pick = next[slot.slot_id]
+      const sourceCleared = cleared.has(slot.home_source) || cleared.has(slot.away_source)
+
+      if (pick) {
+        const valid = new Set([home?.team_id, away?.team_id].filter(Boolean))
+        if (sourceCleared || !valid.has(pick.team_id)) {
+          delete next[slot.slot_id]
+          cleared.add(slot.slot_label)
+          changed = true
+        } else {
+          resolved[slot.slot_label] = pick
+        }
+      } else if (sourceCleared) {
+        cleared.add(slot.slot_label)
+      }
+    }
+  }
+
+  return { next, changed }
+}
+
 function buildLiveQualifiersMap(groupedMatches, values) {
   const map = {}
   const thirds = []
@@ -167,35 +198,7 @@ export default function Prediction() {
   useEffect(() => {
     if (!slots) return
     setPicks(prev => {
-      const resolved = { ...qualifiersMap }
-      // slot_labels that were cleared this run — used to propagate downstream
-      const cleared = new Set()
-      let next = { ...prev }
-      let changed = false
-
-      for (const { key: stage } of BRACKET_STAGES) {
-        for (const slot of slots.filter(s => s.stage === stage)) {
-          const home = resolved[slot.home_source] ?? null
-          const away = resolved[slot.away_source] ?? null
-          const pick = next[slot.slot_id]
-          const sourceCleared = cleared.has(slot.home_source) || cleared.has(slot.away_source)
-
-          if (pick) {
-            const valid = new Set([home?.team_id, away?.team_id].filter(Boolean))
-            if (sourceCleared || !valid.has(pick.team_id)) {
-              delete next[slot.slot_id]
-              cleared.add(slot.slot_label)
-              changed = true
-            } else {
-              resolved[slot.slot_label] = pick
-            }
-          } else if (sourceCleared) {
-            // no pick here, but propagate affected status so downstream slots clear too
-            cleared.add(slot.slot_label)
-          }
-        }
-      }
-
+      const { next, changed } = applyBracketCascade(prev, qualifiersMap, slots)
       return changed ? next : prev
     })
   }, [qualifiersMap, slots])
@@ -246,22 +249,10 @@ export default function Prediction() {
   }
 
   function handlePick(slot, team) {
-    const stageIndex = BRACKET_STAGES.findIndex(s => s.key === slot.stage)
-    const laterKeys = new Set(BRACKET_STAGES.slice(stageIndex + 1).map(s => s.key))
-    const laterIds = slots.filter(s => laterKeys.has(s.stage)).map(s => s.slot_id)
-    const hasPicks = laterIds.some(id => picks[id])
-
-    if (hasPicks) {
-      if (!confirm('Changing this pick will clear all subsequent round selections. Continue?')) return
-      setPicks(prev => {
-        const next = { ...prev }
-        for (const id of laterIds) delete next[id]
-        next[slot.slot_id] = team
-        return next
-      })
-    } else {
-      setPicks(prev => ({ ...prev, [slot.slot_id]: team }))
-    }
+    setPicks(prev => {
+      const { next } = applyBracketCascade({ ...prev, [slot.slot_id]: team }, qualifiersMap, slots)
+      return next
+    })
   }
 
   async function handleSaveBracket() {
