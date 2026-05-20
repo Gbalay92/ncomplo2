@@ -211,7 +211,7 @@ export default function Prediction() {
     const unfilledGroups = Object.values(groupedMatches).flat().filter(m => !isFilled(values[m.id])).length
     const unpickedSlots = slots.filter(s => {
       const { homeTeam, awayTeam } = getTeamsForSlot(s)
-      return homeTeam && awayTeam && !picks[s.slot_id]
+      return (homeTeam || awayTeam) && !picks[s.slot_id]
     }).length
 
     if (unfilledGroups > 0 || unpickedSlots > 0) {
@@ -382,7 +382,7 @@ export default function Prediction() {
                   awayTeam={awayTeam}
                   pickedTeamId={picks[slot.slot_id]?.team_id}
                   onPick={predictionsLocked ? undefined : team => handlePick(slot, team)}
-                  warn={showWarnings && !!homeTeam && !!awayTeam && !picks[slot.slot_id]}
+                  warn={showWarnings && (!!homeTeam || !!awayTeam) && !picks[slot.slot_id]}
                 />
               )
             })}
