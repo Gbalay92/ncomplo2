@@ -1,16 +1,80 @@
-# React + Vite
+# ncomplo2
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend for the World Cup 2026 predictions app. Built with React and Vite.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Framework**: React 19
+- **Router**: React Router 7
+- **Bundler**: Vite 7
+- **Styles**: CSS Modules
+- **Auth**: Cookie-based (handled by the API)
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+cp .env.example .env   # fill in the values
+npm run dev
+```
 
-## Expanding the ESLint configuration
+### Environment variables
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | API base URL (e.g. `https://api.ncomplo.com`) |
+
+## Project structure
+
+```
+src/
+├── api/                    # API client functions
+│   ├── client.js           # Base fetch wrapper with auth retry
+│   ├── auth.js
+│   ├── matches.js
+│   ├── predictions.js
+│   ├── bracket.js
+│   ├── leaderboard.js
+│   ├── tournament.js
+│   └── users.js
+├── components/             # Reusable UI components
+├── context/
+│   └── AuthContext.jsx     # Global auth state
+├── hooks/
+│   └── useRouter.jsx       # Navigation helper
+├── pages/                  # Route-level components
+└── App.jsx                 # Routes definition
+```
+
+## Pages
+
+| Path | Auth | Description |
+|---|---|---|
+| `/` | — | Home — today's matches, podium, CTA button |
+| `/login` | — | Login form |
+| `/register` | — | Registration form |
+| `/prediction` | ✓ | Own predictions — group stage + bracket |
+| `/leaderboard` | ✓ | Ranked leaderboard with podium |
+| `/user/:userId` | ✓ | Read-only view of another user's predictions |
+| `/profile` | ✓ | User profile |
+| `/admin` | ✓ Admin | Admin panel |
+
+## Key features
+
+- **Group predictions** — predict scores for all group stage matches; live standings update as you fill them in.
+- **Bracket predictions** — pick winners for each knockout round; picks cascade-clear automatically when upstream results change.
+- **Save with warnings** — unified save button with confirmation dialog and yellow highlights for unfilled matches/picks.
+- **Leaderboard** — podium for top 3, expandable rows showing today's predictions inline, link to full predictions view.
+- **Today's matches** — home widget showing live match schedule with results when available.
+
+## Auth flow
+
+All API requests include `credentials: 'include'` so cookies are sent automatically. On a 401 response the client retries once after calling `/auth/refresh`. The `AuthContext` exposes `user`, `isLoggedIn`, `logIn`, `register` and `handleLogout`.
+
+## Deployment
+
+```bash
+npm run build   # outputs to dist/
+```
+
+The `dist/` folder is a standard SPA. A `_redirects` file (Netlify) is included to handle client-side routing (`/* → /index.html`).
