@@ -138,7 +138,8 @@ export default function UserPredictions() {
           {activeGroupMatches.map(m => (
             <MatchCard
               key={m.id}
-              match={{ ...m, real_home_goals: m.pred_home_goals, real_away_goals: m.pred_away_goals }}
+              match={m}
+              value={{ home: String(m.pred_home_goals ?? ''), away: String(m.pred_away_goals ?? '') }}
               readOnly={true}
             />
           ))}
