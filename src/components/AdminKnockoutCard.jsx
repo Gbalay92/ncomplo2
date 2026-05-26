@@ -38,15 +38,10 @@ export function AdminKnockoutCard({ slot, isExpanded, onToggle, onSave }) {
       setError('Both scores are required')
       return
     }
-    if (isDraw && !winnerId) {
-      setError('Select the penalty winner')
-      return
-    }
-
     setSaving(true)
     setError(null)
     try {
-      await onSave(slot.slot_id, homeGoals, awayGoals, isDraw ? winnerId : null)
+      await onSave(slot.slot_id, homeGoals, awayGoals, isDraw ? (winnerId ?? null) : null)
       setDisplayHome(homeGoals)
       setDisplayAway(awayGoals)
       onToggle()
