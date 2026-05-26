@@ -140,24 +140,6 @@ export default function Admin() {
                 </section>
             )}
 
-            <section className={styles.lockSection}>
-                <h2>Lock Predictions</h2>
-                <p>Prevent all users from editing their group and bracket predictions. Do this before the tournament starts.</p>
-                {predLockError && <p className={styles.lockError}>{predLockError}</p>}
-                {predLockStatus === 'locked'
-                    ? <p className={styles.lockSuccess}>Predictions are locked.</p>
-                    : (
-                        <button
-                            className={styles.lockBtn}
-                            onClick={handleLockPredictions}
-                            disabled={predLockStatus === 'locking'}
-                        >
-                            {predLockStatus === 'locking' ? 'Locking…' : 'Lock predictions'}
-                        </button>
-                    )
-                }
-            </section>
-
             {knockoutSlots && (() => {
                 const STAGES = [
                     { key: 'round_of_32', label: 'R32' },
@@ -216,6 +198,24 @@ export default function Admin() {
                             disabled={!allFilled || lockStatus === 'locking'}
                         >
                             {lockStatus === 'locking' ? 'Locking…' : `Lock group stage (${filledCount}/72)`}
+                        </button>
+                    )
+                }
+            </section>
+
+            <section className={styles.lockSection}>
+                <h2>Lock Predictions</h2>
+                <p>Prevent all users from editing their group and bracket predictions. Do this before the tournament starts.</p>
+                {predLockError && <p className={styles.lockError}>{predLockError}</p>}
+                {predLockStatus === 'locked'
+                    ? <p className={styles.lockSuccess}>Predictions are locked.</p>
+                    : (
+                        <button
+                            className={styles.lockBtn}
+                            onClick={handleLockPredictions}
+                            disabled={predLockStatus === 'locking'}
+                        >
+                            {predLockStatus === 'locking' ? 'Locking…' : 'Lock predictions'}
                         </button>
                     )
                 }
