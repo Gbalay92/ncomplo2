@@ -141,14 +141,12 @@ export default function Prediction() {
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
   const [predictionsLocked, setPredictionsLocked] = useState(false)
-  const [groupStageLocked, setGroupStageLocked] = useState(false)
   const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
     Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings(), getMyBracket()])
       .then(([matches, preds, settings, bracket]) => {
         setPredictionsLocked(settings.predictions_locked)
-        setGroupStageLocked(settings.group_stage_locked)
 
         const grouped = {}
         for (const match of matches) {
@@ -157,7 +155,7 @@ export default function Prediction() {
           grouped[key].push(match)
         }
         setGroupedMatches(grouped)
-        setActiveTab(settings.group_stage_locked ? 'round_of_32' : `Group ${matches[0].group_name}`)
+        setActiveTab(`Group ${matches[0].group_name}`)
 
         const initial = {}
         for (const p of preds) {
@@ -280,7 +278,7 @@ export default function Prediction() {
   const activeBracketSlots = isBracketTab ? slots.filter(s => s.stage === activeTab) : []
 
   const allTabs = [
-    ...(groupStageLocked ? [] : groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' }))),
+    ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' })),
     ...BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' })),
   ]
   const activeIndex = allTabs.findIndex(t => t.key === activeTab)
@@ -323,20 +321,18 @@ export default function Prediction() {
         <nav className={navStyles.stageNav}>
           {/* Desktop: two rows */}
           <div className={navStyles.desktopNav}>
-            {!groupStageLocked && (
-              <div className={navStyles.stageRow}>
-                <span className={navStyles.stageLabel}>Groups</span>
-                {groupNames.map(name => (
-                  <button
-                    key={name}
-                    className={[activeTab === name ? navStyles.active : '', warnedTabs.has(name) ? navStyles.incomplete : ''].join(' ')}
-                    onClick={() => setActiveTab(name)}
-                  >
-                    {name.replace('Group ', '')}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className={navStyles.stageRow}>
+              <span className={navStyles.stageLabel}>Groups</span>
+              {groupNames.map(name => (
+                <button
+                  key={name}
+                  className={[activeTab === name ? navStyles.active : '', warnedTabs.has(name) ? navStyles.incomplete : ''].join(' ')}
+                  onClick={() => setActiveTab(name)}
+                >
+                  {name.replace('Group ', '')}
+                </button>
+              ))}
+            </div>
             <div className={navStyles.stageRow}>
               <span className={navStyles.stageLabel}>Knockout</span>
               {BRACKET_STAGES.map(({ key, label }) => (
