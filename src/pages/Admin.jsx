@@ -107,36 +107,38 @@ export default function Admin() {
         <main className={styles.adminPage}>
             <h1>Admin Panel</h1>
 
-            <section className={styles.groupStage}>
-                <h2>Group Stage Results</h2>
-                <p className={styles.progress}>{filledCount} / {allMatches.length} results entered</p>
+            {lockStatus !== 'locked' && (
+                <section className={styles.groupStage}>
+                    <h2>Group Stage Results</h2>
+                    <p className={styles.progress}>{filledCount} / {allMatches.length} results entered</p>
 
-                <nav className={navStyles.stageNav}>
-                    <div className={navStyles.stageRow}>
-                        {Object.keys(groupedMatches).map(name => (
-                            <button
-                                key={name}
-                                className={activeGroup === name ? navStyles.active : ''}
-                                onClick={() => setActiveGroup(name)}
-                            >
-                                <span className={navStyles.groupWord}>Group </span>{name.replace('Group ', '')}
-                            </button>
+                    <nav className={navStyles.stageNav}>
+                        <div className={navStyles.stageRow}>
+                            {Object.keys(groupedMatches).map(name => (
+                                <button
+                                    key={name}
+                                    className={activeGroup === name ? navStyles.active : ''}
+                                    onClick={() => setActiveGroup(name)}
+                                >
+                                    <span className={navStyles.groupWord}>Group </span>{name.replace('Group ', '')}
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
+
+                    <div className={styles.matchList}>
+                        {currentMatches.map(match => (
+                            <AdminMatchCard
+                                key={match.id}
+                                match={match}
+                                isExpanded={expandedId === match.id}
+                                onToggle={() => setExpandedId(prev => prev === match.id ? null : match.id)}
+                                onSave={handleSave}
+                            />
                         ))}
                     </div>
-                </nav>
-
-                <div className={styles.matchList}>
-                    {currentMatches.map(match => (
-                        <AdminMatchCard
-                            key={match.id}
-                            match={match}
-                            isExpanded={expandedId === match.id}
-                            onToggle={() => setExpandedId(prev => prev === match.id ? null : match.id)}
-                            onSave={handleSave}
-                        />
-                    ))}
-                </div>
-            </section>
+                </section>
+            )}
 
             <section className={styles.lockSection}>
                 <h2>Lock Predictions</h2>
