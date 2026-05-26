@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
 import { getUserPredictions, getUserBracket } from '../api/users.js'
 import { MatchCard } from '../components/MatchCard.jsx'
+import { BracketMatchCard } from '../components/BracketMatchCard.jsx'
 import styles from './UserPredictions.module.css'
 import navStyles from '../components/TournamentNavigation.module.css'
 
@@ -13,23 +14,6 @@ const BRACKET_STAGES = [
   { key: 'final',         label: 'Final' },
 ]
 
-function BracketPickCard({ slot }) {
-  const hasPick = slot.pred_winner_id != null
-
-  return (
-    <div className={styles.bracketCard}>
-      <span className={styles.bracketLabel}>{slot.slot_label}</span>
-      {hasPick ? (
-        <div className={styles.bracketPick}>
-          <img src={slot.pred_winner_flag} alt="" width="24" />
-          <span>{slot.pred_winner_name}</span>
-        </div>
-      ) : (
-        <span className={styles.bracketNoPick}>Sin predicción</span>
-      )}
-    </div>
-  )
-}
 
 export default function UserPredictions() {
   const { userId } = useParams()
@@ -147,10 +131,21 @@ export default function UserPredictions() {
       )}
 
       {isBracketTab && (
-        <div className={styles.bracketList}>
-          {activeBracketSlots.map(slot => (
-            <BracketPickCard key={slot.slot_id} slot={slot} />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem' }}>
+          {activeBracketSlots.map(slot => {
+            const homeTeam = slot.home_team_id ? { team_id: slot.home_team_id, name: slot.home_team_name, flag_url: slot.home_team_flag } : null
+            const awayTeam = slot.away_team_id ? { team_id: slot.away_team_id, name: slot.away_team_name, flag_url: slot.away_team_flag } : null
+            return (
+              <BracketMatchCard
+                key={slot.slot_id}
+                slot={slot}
+                homeTeam={homeTeam}
+                awayTeam={awayTeam}
+                pickedTeamId={slot.pred_winner_id}
+                onPick={undefined}
+              />
+            )
+          })}
         </div>
       )}
     </div>
