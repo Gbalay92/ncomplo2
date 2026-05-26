@@ -35,9 +35,9 @@ export function MatchCard({ match, readOnly = false, value, onChange, incomplete
         <div className={styles.scoreContainer}>
           {readOnly ? (
             <>
-              <span className={styles.scoreText}>{homeScore !== null ? homeScore : '–'}</span>
+              <span className={styles.scoreText}>{home !== '' ? home : '–'}</span>
               <span className={styles.scoreSep}>:</span>
-              <span className={styles.scoreText}>{awayScore !== null ? awayScore : '–'}</span>
+              <span className={styles.scoreText}>{away !== '' ? away : '–'}</span>
             </>
           ) : (
             <>
