@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { getMyQualifiers, getMyBracket, saveMyBracket } from '../api/bracket.js'
 import { BracketMatchCard } from '../components/BracketMatchCard.jsx'
+import { getFifaThirdAssignment, THIRD_SLOT_KEYS } from '../utils/fifaThirdPlaceTable.js'
 import styles from './BracketPrediction.module.css'
 import predStyles from './Prediction.module.css'
 
@@ -10,15 +11,6 @@ const STAGES = [
   { key: 'quarter_final', label: 'QF' },
   { key: 'semi_final',   label: 'SF' },
   { key: 'final',        label: 'Final' },
-]
-
-// Slot keys for third-place teams — must match knockout_slots.away_source values
-// and the column order in the FIFA Annex C table (1A, 1B, 1D, 1E, 1G, 1I, 1K, 1L).
-// For user predictions we don't know the real FIFA assignment yet, so we rank
-// predicted thirds by performance and assign them to slots in this fixed order.
-const THIRD_SLOT_KEYS = [
-  '3rd_vs_1A', '3rd_vs_1B', '3rd_vs_1D', '3rd_vs_1E',
-  '3rd_vs_1G', '3rd_vs_1I', '3rd_vs_1K', '3rd_vs_1L',
 ]
 
 function buildQualifiersMap(qualifiers) {
@@ -33,9 +25,26 @@ function buildQualifiersMap(qualifiers) {
     }
   }
 
-  thirds
-    .sort((a, b) => b.pred_points - a.pred_points || b.pred_gd - a.pred_gd || b.pred_gf - a.pred_gf)
-    .forEach((q, i) => { map[THIRD_SLOT_KEYS[i]] = q })
+  // Sort thirds by predicted performance to get the top 8 qualifying groups
+  const sorted = thirds.sort((a, b) =>
+    b.pred_points - a.pred_points || b.pred_gd - a.pred_gd || b.pred_gf - a.pred_gf
+  )
+
+  // Build a group → qualifier object map for quick lookup
+  const thirdByGroup = Object.fromEntries(sorted.map(q => [q.group_name, q]))
+
+  // Apply FIFA Annex C table to assign each third to the correct R32 slot
+  const qualifyingGroups = sorted.slice(0, 8).map(q => q.group_name)
+  const assignment = getFifaThirdAssignment(qualifyingGroups)
+
+  if (assignment) {
+    for (const [slotKey, group] of Object.entries(assignment)) {
+      map[slotKey] = thirdByGroup[group]
+    }
+  } else {
+    // Fallback: rank-based assignment (shouldn't happen with valid group data)
+    sorted.slice(0, 8).forEach((q, i) => { map[THIRD_SLOT_KEYS[i]] = q })
+  }
 
   return map
 }

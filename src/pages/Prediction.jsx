@@ -6,6 +6,7 @@ import { getTournamentSettings } from "../api/tournament.js"
 import { MatchCard } from "../components/MatchCard.jsx"
 import { BracketMatchCard } from "../components/BracketMatchCard.jsx"
 import { GroupStandings } from "../components/GroupStandings.jsx"
+import { getFifaThirdAssignment, THIRD_SLOT_KEYS } from '../utils/fifaThirdPlaceTable.js'
 import styles from './Prediction.module.css'
 import navStyles from '../components/TournamentNavigation.module.css'
 
@@ -118,15 +119,20 @@ function buildLiveQualifiersMap(groupedMatches, values) {
     })
   }
 
-  // Must match knockout_slots.away_source keys — same order as FIFA Annex C columns
-  const THIRD_SLOT_KEYS = [
-    '3rd_vs_1A', '3rd_vs_1B', '3rd_vs_1D', '3rd_vs_1E',
-    '3rd_vs_1G', '3rd_vs_1I', '3rd_vs_1K', '3rd_vs_1L',
-  ]
-  thirds
-    .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf)
-    .slice(0, 8)
-    .forEach((t, i) => { map[THIRD_SLOT_KEYS[i]] = t })
+  const sorted = thirds.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf)
+  const top8 = sorted.slice(0, 8)
+  const thirdByGroup = Object.fromEntries(sorted.map(t => [t.group_name, t]))
+
+  // Apply FIFA Annex C table to assign each third to the correct R32 slot
+  const assignment = getFifaThirdAssignment(top8.map(t => t.group_name))
+  if (assignment) {
+    for (const [slotKey, group] of Object.entries(assignment)) {
+      map[slotKey] = thirdByGroup[group]
+    }
+  } else {
+    // Fallback: rank-based (shouldn't happen with valid group data)
+    top8.forEach((t, i) => { map[THIRD_SLOT_KEYS[i]] = t })
+  }
 
   return map
 }
