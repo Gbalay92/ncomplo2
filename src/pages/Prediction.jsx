@@ -118,10 +118,15 @@ function buildLiveQualifiersMap(groupedMatches, values) {
     })
   }
 
+  // Must match knockout_slots.away_source keys — same order as FIFA Annex C columns
+  const THIRD_SLOT_KEYS = [
+    '3rd_vs_1A', '3rd_vs_1B', '3rd_vs_1D', '3rd_vs_1E',
+    '3rd_vs_1G', '3rd_vs_1I', '3rd_vs_1K', '3rd_vs_1L',
+  ]
   thirds
     .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf)
     .slice(0, 8)
-    .forEach((t, i) => { map[`3rd_${i + 1}`] = t })
+    .forEach((t, i) => { map[THIRD_SLOT_KEYS[i]] = t })
 
   return map
 }

@@ -12,6 +12,15 @@ const STAGES = [
   { key: 'final',        label: 'Final' },
 ]
 
+// Slot keys for third-place teams — must match knockout_slots.away_source values
+// and the column order in the FIFA Annex C table (1A, 1B, 1D, 1E, 1G, 1I, 1K, 1L).
+// For user predictions we don't know the real FIFA assignment yet, so we rank
+// predicted thirds by performance and assign them to slots in this fixed order.
+const THIRD_SLOT_KEYS = [
+  '3rd_vs_1A', '3rd_vs_1B', '3rd_vs_1D', '3rd_vs_1E',
+  '3rd_vs_1G', '3rd_vs_1I', '3rd_vs_1K', '3rd_vs_1L',
+]
+
 function buildQualifiersMap(qualifiers) {
   const map = {}
   const thirds = []
@@ -26,7 +35,7 @@ function buildQualifiersMap(qualifiers) {
 
   thirds
     .sort((a, b) => b.pred_points - a.pred_points || b.pred_gd - a.pred_gd || b.pred_gf - a.pred_gf)
-    .forEach((q, i) => { map[`3rd_${i + 1}`] = q })
+    .forEach((q, i) => { map[THIRD_SLOT_KEYS[i]] = q })
 
   return map
 }
