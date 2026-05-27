@@ -108,12 +108,15 @@ function buildLiveQualifiersMap(groupedMatches, values) {
     const groupName = groupKey.replace('Group ', '')
     const standings = computeGroupStandings(matches, values)
     const allFilled = matches.every(m => isFilled(values[m.id]))
+    const anyFilled = matches.some(m => isFilled(values[m.id]))
 
     standings.forEach((team, i) => {
       const pos = i + 1
       if (pos <= 2 && allFilled) {
         map[`${pos}${groupName}`] = team
-      } else if (pos === 3 && allFilled) {
+      } else if (pos === 3 && anyFilled) {
+        // Include current 3rd as soon as the group has any result,
+        // so the R32 bracket propagates live while filling predictions
         thirds.push({ ...team, group_name: groupName })
       }
     })
@@ -123,15 +126,17 @@ function buildLiveQualifiersMap(groupedMatches, values) {
   const top8 = sorted.slice(0, 8)
   const thirdByGroup = Object.fromEntries(sorted.map(t => [t.group_name, t]))
 
-  // Apply FIFA Annex C table to assign each third to the correct R32 slot
-  const assignment = getFifaThirdAssignment(top8.map(t => t.group_name))
-  if (assignment) {
-    for (const [slotKey, group] of Object.entries(assignment)) {
-      map[slotKey] = thirdByGroup[group]
+  // Apply FIFA Annex C table only once we have 8 qualifying thirds
+  if (top8.length === 8) {
+    const assignment = getFifaThirdAssignment(top8.map(t => t.group_name))
+    if (assignment) {
+      for (const [slotKey, group] of Object.entries(assignment)) {
+        map[slotKey] = thirdByGroup[group]
+      }
+    } else {
+      // Fallback: rank-based (shouldn't happen with valid group data)
+      top8.forEach((t, i) => { map[THIRD_SLOT_KEYS[i]] = t })
     }
-  } else {
-    // Fallback: rank-based (shouldn't happen with valid group data)
-    top8.forEach((t, i) => { map[THIRD_SLOT_KEYS[i]] = t })
   }
 
   return map
