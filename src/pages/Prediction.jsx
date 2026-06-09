@@ -160,41 +160,43 @@ export default function Prediction() {
   const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
-    Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings(), getMyBracket()])
-      .then(([matches, preds, settings, bracket]) => {
-        setPredictionsLocked(settings.predictions_locked)
+    const load = () =>
+      Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings(), getMyBracket()])
+        .then(([matches, preds, settings, bracket]) => {
+          setPredictionsLocked(settings.predictions_locked)
 
-        const grouped = {}
-        for (const match of matches) {
-          const key = `Group ${match.group_name}`
-          if (!grouped[key]) grouped[key] = []
-          grouped[key].push(match)
-        }
-        setGroupedMatches(grouped)
-        setActiveTab(`Group ${matches[0].group_name}`)
+          const grouped = {}
+          for (const match of matches) {
+            const key = `Group ${match.group_name}`
+            if (!grouped[key]) grouped[key] = []
+            grouped[key].push(match)
+          }
+          setGroupedMatches(grouped)
+          setActiveTab(`Group ${matches[0].group_name}`)
 
-        const initial = {}
-        for (const p of preds) {
-          initial[p.match_id] = { home: String(p.pred_home_goals), away: String(p.pred_away_goals) }
-        }
-        setValues(initial)
-        setSavedValues(initial)
+          const initial = {}
+          for (const p of preds) {
+            initial[p.match_id] = { home: String(p.pred_home_goals), away: String(p.pred_away_goals) }
+          }
+          setValues(initial)
+          setSavedValues(initial)
 
-        setSlots(bracket)
-        const initialPicks = {}
-        for (const slot of bracket) {
-          if (slot.pred_winner_id) {
-            initialPicks[slot.slot_id] = {
-              team_id: slot.pred_winner_id,
-              name: slot.pred_winner_name,
-              flag_url: slot.pred_winner_flag,
+          setSlots(bracket)
+          const initialPicks = {}
+          for (const slot of bracket) {
+            if (slot.pred_winner_id) {
+              initialPicks[slot.slot_id] = {
+                team_id: slot.pred_winner_id,
+                name: slot.pred_winner_name,
+                flag_url: slot.pred_winner_flag,
+              }
             }
           }
-        }
-        setPicks(initialPicks)
-        setSavedPicks(initialPicks)
-      })
-      .catch(() => setLoadError('Failed to load data'))
+          setPicks(initialPicks)
+          setSavedPicks(initialPicks)
+        })
+
+    load().catch(err => setLoadError(err?.message || String(err) || 'Failed to load data'))
   }, [])
 
   // ── Live qualifiers from current predictions ─────────────────
