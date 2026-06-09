@@ -2,7 +2,7 @@ import { get, put } from './client.js'
 
 export async function getMyPredictions() {
   const res = await get('/predictions')
-  if (!res.ok) throw new Error('Failed to fetch predictions')
+  if (!res.ok) throw new Error(`Failed to fetch predictions (${res.status})`)
   return res.json()
 }
 
