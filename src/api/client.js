@@ -1,5 +1,19 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+// Refresh mutex: ensures only one /auth/refresh call is in flight at a time.
+// Concurrent 401s all wait for the same refresh and share the result.
+let refreshPromise = null
+
+async function refreshToken() {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    }).finally(() => { refreshPromise = null })
+  }
+  return refreshPromise
+}
+
 async function request(path, options = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
@@ -9,11 +23,7 @@ async function request(path, options = {}) {
 
   // On 401, try to refresh the token once and retry
   if (res.status === 401 && !options._retry) {
-    const refreshed = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-      _retry: true
-    })
+    const refreshed = await refreshToken()
     if (refreshed.ok) {
       return request(path, { ...options, _retry: true })
     }
