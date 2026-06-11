@@ -20,3 +20,10 @@ export async function getUserBracket(userId) {
   if (!res.ok) throw new Error('Failed to fetch bracket')
   return res.json()
 }
+
+export async function getUserQualifiers(userId) {
+  const res = await get(`/users/${userId}/qualifiers`)
+  if (res.status === 403) return null
+  if (!res.ok) throw new Error('Failed to fetch qualifiers')
+  return res.json()
+}

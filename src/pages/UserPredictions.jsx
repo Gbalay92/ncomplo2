@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
-import { getUserPredictions, getUserBracket } from '../api/users.js'
+import { getUserPredictions, getUserBracket, getUserQualifiers } from '../api/users.js'
+import { getFifaThirdAssignment, THIRD_SLOT_KEYS } from '../utils/fifaThirdPlaceTable.js'
 import { MatchCard } from '../components/MatchCard.jsx'
 import { BracketMatchCard } from '../components/BracketMatchCard.jsx'
 import styles from './UserPredictions.module.css'
@@ -22,13 +23,14 @@ export default function UserPredictions() {
 
   const [groupedMatches, setGroupedMatches] = useState(null)
   const [bracket, setBracket] = useState(null)
+  const [qualifiersMap, setQualifiersMap] = useState({})
   const [activeTab, setActiveTab] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    Promise.all([getUserPredictions(userId), getUserBracket(userId)])
-      .then(([preds, brkt]) => {
+    Promise.all([getUserPredictions(userId), getUserBracket(userId), getUserQualifiers(userId)])
+      .then(([preds, brkt, quals]) => {
         if (preds === null) {
           setError('Las predicciones aún no están disponibles')
           return
@@ -44,6 +46,31 @@ export default function UserPredictions() {
         const firstGroup = Object.keys(grouped)[0]
         if (firstGroup) setActiveTab(firstGroup)
         setBracket(brkt ?? [])
+
+        // Build qualifiers map same as BracketPrediction
+        const map = {}
+        const thirds = []
+        for (const q of (quals ?? [])) {
+          if (q.position <= 2) {
+            map[`${q.position}${q.group_name}`] = q
+          } else if (q.position === 3) {
+            thirds.push(q)
+          }
+        }
+        const sorted = thirds.sort((a, b) =>
+          b.pred_points - a.pred_points || b.pred_gd - a.pred_gd || b.pred_gf - a.pred_gf
+        )
+        const thirdByGroup = Object.fromEntries(sorted.map(q => [q.group_name, q]))
+        const qualifyingGroups = sorted.slice(0, 8).map(q => q.group_name)
+        const assignment = getFifaThirdAssignment(qualifyingGroups)
+        if (assignment) {
+          for (const [slotKey, group] of Object.entries(assignment)) {
+            map[slotKey] = thirdByGroup[group]
+          }
+        } else {
+          sorted.slice(0, 8).forEach((q, i) => { map[THIRD_SLOT_KEYS[i]] = q })
+        }
+        setQualifiersMap(map)
       })
       .catch(() => setError('Error al cargar las predicciones'))
       .finally(() => setLoading(false))
@@ -133,8 +160,15 @@ export default function UserPredictions() {
       {isBracketTab && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem' }}>
           {activeBracketSlots.map(slot => {
-            const homeTeam = slot.home_team_id ? { team_id: slot.home_team_id, name: slot.home_team_name, flag_url: slot.home_team_flag } : null
-            const awayTeam = slot.away_team_id ? { team_id: slot.away_team_id, name: slot.away_team_name, flag_url: slot.away_team_flag } : null
+            const slotsByLabel = Object.fromEntries(bracket.map(s => [s.slot_label, s]))
+            const picksByLabel = Object.fromEntries(
+              bracket
+                .filter(s => s.pred_winner_id)
+                .map(s => [s.slot_label, { team_id: s.pred_winner_id, name: s.pred_winner_name, flag_url: s.pred_winner_flag }])
+            )
+            const resolve = source => qualifiersMap[source] ?? picksByLabel[source] ?? null
+            const homeTeam = resolve(slot.home_source)
+            const awayTeam = resolve(slot.away_source)
             return (
               <BracketMatchCard
                 key={slot.slot_id}
