@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 // Refresh mutex: ensures only one /auth/refresh call is in flight at a time.
 // Concurrent 401s all wait for the same refresh and share the result.
