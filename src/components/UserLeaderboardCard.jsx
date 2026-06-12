@@ -74,7 +74,7 @@ export function UserLeaderboardCard({ user }) {
                   <PredictionMatchRow key={m.id} match={m} />
                 ))}
               </div>
-              <Link to={`/user/${user.user_id}`} state={{ displayName: user.display_name }} className={styles.fullLink}>
+              <Link to={`/user/${user.user_id}`} state={{ displayName: user.display_name, firstName: user.first_name, lastName: user.last_name }} className={styles.fullLink}>
                 Ver predicciones completas →
               </Link>
             </>

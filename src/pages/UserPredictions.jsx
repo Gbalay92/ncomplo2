@@ -20,6 +20,8 @@ export default function UserPredictions() {
   const { userId } = useParams()
   const location = useLocation()
   const displayName = location.state?.displayName
+  const firstName = location.state?.firstName
+  const lastName = location.state?.lastName
 
   const [groupedMatches, setGroupedMatches] = useState(null)
   const [bracket, setBracket] = useState(null)
@@ -99,6 +101,7 @@ export default function UserPredictions() {
       <header className={styles.header}>
         <Link to="/leaderboard" className={styles.backLink}>← Leaderboard</Link>
         <h1 className={styles.title}>{displayName ?? 'Predicciones'}</h1>
+        {firstName && <p className={styles.realName}>{firstName} {lastName}</p>}
       </header>
 
       <nav className={navStyles.stageNav}>
