@@ -76,7 +76,7 @@ export function PredictionsModal({ user, onClose }) {
         <footer className={styles.footer}>
           <Link
             to={`/user/${user.user_id}`}
-            state={{ displayName: user.display_name }}
+            state={{ displayName: user.display_name, firstName: user.first_name, lastName: user.last_name }}
             className={styles.fullLink}
             onClick={onClose}
           >
