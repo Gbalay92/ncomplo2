@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
-import { getUserPredictions, getUserBracket, getUserQualifiers } from '../api/users.js'
+import { getUserPredictions, getUserBracket, getUserQualifiers, getUserProfile } from '../api/users.js'
 import { getFifaThirdAssignment, THIRD_SLOT_KEYS } from '../utils/fifaThirdPlaceTable.js'
 import { MatchCard } from '../components/MatchCard.jsx'
 import { BracketMatchCard } from '../components/BracketMatchCard.jsx'
@@ -19,9 +19,9 @@ const BRACKET_STAGES = [
 export default function UserPredictions() {
   const { userId } = useParams()
   const location = useLocation()
-  const displayName = location.state?.displayName
-  const firstName = location.state?.firstName
-  const lastName = location.state?.lastName
+  const [displayName, setDisplayName] = useState(location.state?.displayName ?? null)
+  const [firstName, setFirstName] = useState(location.state?.firstName ?? null)
+  const [lastName, setLastName] = useState(location.state?.lastName ?? null)
 
   const [groupedMatches, setGroupedMatches] = useState(null)
   const [bracket, setBracket] = useState(null)
@@ -31,7 +31,11 @@ export default function UserPredictions() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    Promise.all([getUserPredictions(userId), getUserBracket(userId), getUserQualifiers(userId)])
+    const profilePromise = (!location.state?.displayName)
+      ? getUserProfile(userId).then(p => { setDisplayName(p.display_name); setFirstName(p.first_name); setLastName(p.last_name) }).catch(() => {})
+      : Promise.resolve()
+
+    Promise.all([getUserPredictions(userId), getUserBracket(userId), getUserQualifiers(userId), profilePromise])
       .then(([preds, brkt, quals]) => {
         if (preds === null) {
           setError('Las predicciones aún no están disponibles')
