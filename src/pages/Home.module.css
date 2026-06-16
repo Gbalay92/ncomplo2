@@ -204,7 +204,7 @@ main > section > img{
 	width: 1.6rem;
 	height: 1.6rem;
 	border-radius: 50%;
-	background: var(--text-muted);
+	background: var(--primary-light);
 	display: flex;
 	align-items: center;
 	justify-content: center;
