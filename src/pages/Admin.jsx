@@ -7,9 +7,21 @@ import { AdminKnockoutCard } from '../components/AdminKnockoutCard.jsx'
 import styles from './Admin.module.css'
 import navStyles from '../components/TournamentNavigation.module.css'
 
+function localDateKey(dateStr) {
+    const d = new Date(dateStr)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function formatDateLabel(key) {
+    const [y, m, d] = key.split('-').map(Number)
+    return new Date(y, m - 1, d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
 export default function Admin() {
     const [groupedMatches, setGroupedMatches] = useState(null)
     const [activeGroup, setActiveGroup] = useState(null)
+    const [groupView, setGroupView] = useState('group')
+    const [activeDate, setActiveDate] = useState(null)
     const [savedResults, setSavedResults] = useState({})
     const [expandedId, setExpandedId] = useState(null)
     const [knockoutSlots, setKnockoutSlots] = useState(null)
@@ -48,6 +60,9 @@ export default function Admin() {
                 }
                 setGroupedMatches(grouped)
                 setActiveGroup(Object.keys(grouped)[0])
+
+                const dateKeys = [...new Set(matches.map(m => localDateKey(m.match_date)))].sort()
+                setActiveDate(dateKeys[0])
                 setSavedResults(initial)
             })
             .catch(() => setLoadError('Failed to load matches'))
@@ -107,38 +122,81 @@ export default function Admin() {
         <main className={styles.adminPage}>
             <h1>Admin Panel</h1>
 
-            {lockStatus !== 'locked' && (
-                <section className={styles.groupStage}>
-                    <h2>Group Stage Results</h2>
-                    <p className={styles.progress}>{filledCount} / {allMatches.length} results entered</p>
+            {lockStatus !== 'locked' && (() => {
+                const allMatchesList = Object.values(groupedMatches).flat()
+                const dateKeys = [...new Set(allMatchesList.map(m => localDateKey(m.match_date)))].sort()
+                const groupedByDate = {}
+                for (const m of allMatchesList) {
+                    const key = localDateKey(m.match_date)
+                    if (!groupedByDate[key]) groupedByDate[key] = []
+                    groupedByDate[key].push(m)
+                }
+                const visibleMatches = groupView === 'group' ? currentMatches : (groupedByDate[activeDate] ?? [])
 
-                    <nav className={navStyles.stageNav}>
-                        <div className={navStyles.stageRow}>
-                            {Object.keys(groupedMatches).map(name => (
+                return (
+                    <section className={styles.groupStage}>
+                        <div className={styles.groupStageHeader}>
+                            <h2>Group Stage Results</h2>
+                            <div className={styles.viewToggle}>
                                 <button
-                                    key={name}
-                                    className={activeGroup === name ? navStyles.active : ''}
-                                    onClick={() => setActiveGroup(name)}
-                                >
-                                    <span className={navStyles.groupWord}>Group </span>{name.replace('Group ', '')}
-                                </button>
+                                    className={groupView === 'group' ? styles.toggleActive : ''}
+                                    onClick={() => setGroupView('group')}
+                                >Grupo</button>
+                                <button
+                                    className={groupView === 'date' ? styles.toggleActive : ''}
+                                    onClick={() => setGroupView('date')}
+                                >Fecha</button>
+                            </div>
+                        </div>
+                        <p className={styles.progress}>{filledCount} / {allMatches.length} results entered</p>
+
+                        {groupView === 'group' ? (
+                            <nav className={navStyles.stageNav}>
+                                <div className={navStyles.stageRow}>
+                                    {Object.keys(groupedMatches).map(name => (
+                                        <button
+                                            key={name}
+                                            className={activeGroup === name ? navStyles.active : ''}
+                                            onClick={() => setActiveGroup(name)}
+                                        >
+                                            <span className={navStyles.groupWord}>Group </span>{name.replace('Group ', '')}
+                                        </button>
+                                    ))}
+                                </div>
+                            </nav>
+                        ) : (
+                            <nav className={navStyles.stageNav}>
+                                <div className={navStyles.stageRow}>
+                                    {dateKeys.map(key => (
+                                        <button
+                                            key={key}
+                                            className={activeDate === key ? navStyles.active : ''}
+                                            onClick={() => setActiveDate(key)}
+                                        >
+                                            {formatDateLabel(key)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </nav>
+                        )}
+
+                        <div className={styles.matchList}>
+                            {visibleMatches.map(match => (
+                                <AdminMatchCard
+                                    key={match.id}
+                                    match={match}
+                                    isExpanded={expandedId === match.id}
+                                    onToggle={() => setExpandedId(prev => prev === match.id ? null : match.id)}
+                                    onSave={handleSave}
+                                    subtitle={groupView === 'date'
+                                        ? `Grupo ${match.group_name} · ${new Date(match.match_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+                                        : undefined}
+                                />
                             ))}
                         </div>
-                    </nav>
-
-                    <div className={styles.matchList}>
-                        {currentMatches.map(match => (
-                            <AdminMatchCard
-                                key={match.id}
-                                match={match}
-                                isExpanded={expandedId === match.id}
-                                onToggle={() => setExpandedId(prev => prev === match.id ? null : match.id)}
-                                onSave={handleSave}
-                            />
-                        ))}
-                    </div>
-                </section>
-            )}
+                    </section>
+                )
+            })()}
 
             {knockoutSlots && (() => {
                 const STAGES = [
