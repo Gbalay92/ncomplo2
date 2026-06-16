@@ -201,9 +201,17 @@ main > section > img{
 }
 
 .myPositionRank {
-	font-size: 0.85rem;
+	width: 1.6rem;
+	height: 1.6rem;
+	border-radius: 50%;
+	border: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.75rem;
 	font-weight: 700;
 	color: var(--text-muted);
+	flex-shrink: 0;
 }
 
 .myPositionPts {

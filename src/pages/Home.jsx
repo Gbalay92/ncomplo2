@@ -115,8 +115,8 @@ export default function HomePage() {
                         <Podium users={topThree} onSelect={() => navigateTo('/leaderboard')} />
                         {myStats && myStats.rank > 3 && (
                             <div className={styles.myPosition}>
+                                <span className={styles.myPositionRank}>{myStats.rank}</span>
                                 <span className={styles.myPositionName}>{user.display_name}</span>
-                                <span className={styles.myPositionRank}>#{myStats.rank}</span>
                                 <span className={styles.myPositionPts}>{myStats.points} pts</span>
                             </div>
                         )}
