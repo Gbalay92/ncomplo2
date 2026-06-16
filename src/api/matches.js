@@ -7,7 +7,14 @@ export async function getNextMatch() {
 }
 
 export async function getTodayMatches() {
-  const res = await get('/matches/today')
+  const now = new Date()
+  const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const localMidnightNext = new Date(localMidnight.getTime() + 86400000)
+  const params = new URLSearchParams({
+    from: localMidnight.toISOString(),
+    to: localMidnightNext.toISOString(),
+  })
+  const res = await get(`/matches/today?${params}`)
   if (!res.ok) throw new Error('Failed to fetch today matches')
   return res.json()
 }
