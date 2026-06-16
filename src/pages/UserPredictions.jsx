@@ -38,7 +38,6 @@ export default function UserPredictions() {
   const [qualifiersMap, setQualifiersMap] = useState({})
   const [activeTab, setActiveTab] = useState(null)
   const [groupView, setGroupView] = useState('date')
-  const [activeDate, setActiveDate] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -63,12 +62,12 @@ export default function UserPredictions() {
         setGroupedMatches(grouped)
         setAllGroupMatches(preds)
         const firstGroup = Object.keys(grouped)[0]
-        if (firstGroup) setActiveTab(firstGroup)
         setBracket(brkt ?? [])
 
         const dateKeys = [...new Set(preds.map(m => localDateKey(m.match_date)))].sort()
         const todayKey = localDateKey(new Date().toISOString())
-        setActiveDate(dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1])
+        const defaultDate = dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1]
+        setActiveTab(defaultDate ?? firstGroup)
 
         // Build qualifiers map same as BracketPrediction
         const map = {}
@@ -121,13 +120,18 @@ export default function UserPredictions() {
     groupedByDate[key].push(m)
   }
   const dateKeys = Object.keys(groupedByDate).sort()
-  const dateIdx = activeDate ? dateKeys.indexOf(activeDate) : 0
+  const allPages = [...dateKeys, ...BRACKET_STAGES.map(s => s.key)]
+  const pageIdx = allPages.indexOf(activeTab)
+  const isDatePage = dateKeys.includes(activeTab)
+  const pageLabel = isDatePage
+    ? formatDateLabel(activeTab)
+    : (BRACKET_STAGES.find(s => s.key === activeTab)?.label ?? '')
 
   const activeGroupMatches = groupView === 'group'
     ? (isGroupTab ? (groupedMatches[activeTab] ?? []) : [])
-    : (groupedByDate[activeDate] ?? [])
+    : (groupedByDate[activeTab] ?? [])
 
-  const showGroupContent = groupView === 'date' || isGroupTab
+  const showGroupContent = (groupView === 'date' && isDatePage) || (groupView === 'group' && isGroupTab)
   const activeBracketSlots = isBracketTab ? bracket.filter(s => s.stage === activeTab) : []
 
   return (
@@ -142,11 +146,24 @@ export default function UserPredictions() {
           <div className={styles.viewToggle}>
             <button
               className={groupView === 'group' ? styles.toggleActive : ''}
-              onClick={() => setGroupView('group')}
+              onClick={() => {
+                if (groupView !== 'group') {
+                  const firstGroup = Object.keys(groupedMatches)[0]
+                  if (firstGroup) setActiveTab(firstGroup)
+                  setGroupView('group')
+                }
+              }}
             >Group</button>
             <button
               className={groupView === 'date' ? styles.toggleActive : ''}
-              onClick={() => setGroupView('date')}
+              onClick={() => {
+                if (groupView !== 'date') {
+                  const todayKey = localDateKey(new Date().toISOString())
+                  const defaultDate = dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1]
+                  if (defaultDate) setActiveTab(defaultDate)
+                  setGroupView('date')
+                }
+              }}
             >Date</button>
           </div>
         </div>
@@ -196,28 +213,18 @@ export default function UserPredictions() {
             </div>
           </>
         ) : (
-          <div className={styles.dateModeNav}>
+          <div className={navStyles.mobilePager} style={{ display: 'flex' }}>
             <button
               className={navStyles.pagerBtn}
-              onClick={() => setActiveDate(dateKeys[dateIdx - 1])}
-              disabled={dateIdx <= 0}
+              onClick={() => setActiveTab(allPages[pageIdx - 1])}
+              disabled={pageIdx <= 0}
             >‹</button>
-            <span className={styles.dateLabel}>{activeDate ? formatDateLabel(activeDate) : ''}</span>
+            <span className={navStyles.pagerLabel}>{pageLabel}</span>
             <button
               className={navStyles.pagerBtn}
-              onClick={() => setActiveDate(dateKeys[dateIdx + 1])}
-              disabled={dateIdx >= dateKeys.length - 1}
+              onClick={() => setActiveTab(allPages[pageIdx + 1])}
+              disabled={pageIdx >= allPages.length - 1}
             >›</button>
-            <span className={styles.dateDivider}>·</span>
-            {BRACKET_STAGES.map(({ key, label }) => (
-              <button
-                key={key}
-                className={`${navStyles.pagerBtn} ${activeTab === key ? styles.knockoutActive : ''}`}
-                onClick={() => setActiveTab(key)}
-              >
-                {label}
-              </button>
-            ))}
           </div>
         )}
       </nav>
