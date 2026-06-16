@@ -93,7 +93,7 @@ export default function HomePage() {
                 {showPodium && (
                     <div className={styles.podiumWidget} onClick={() => navigateTo('/leaderboard')}>
                         <Podium users={topThree} onSelect={() => navigateTo('/leaderboard')} />
-                        <span className={styles.podiumLink}>Ver leaderboard →</span>
+                        <span className={styles.podiumLink}>View leaderboard →</span>
                     </div>
                 )}
                 <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>
