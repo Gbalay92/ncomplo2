@@ -47,7 +47,6 @@ export default function HomePage() {
     const { navigateTo } = useRouter()
     const { isLoggedIn, user } = useAuth()
     const [topThree, setTopThree] = useState([])
-    const [myStats, setMyStats] = useState(null)
     const [myPredictions, setMyPredictions] = useState(null)
     const [todayData, setTodayData] = useState(null)
     const [predictionsLocked, setPredictionsLocked] = useState(false)
@@ -57,11 +56,7 @@ export default function HomePage() {
 
         if (isLoggedIn && user?.id) {
             getLeaderboard()
-                .then(data => {
-                    setTopThree(data.slice(0, 3))
-                    const me = data.find(e => e.user_id === user.id)
-                    if (me) setMyStats({ rank: me.rank, points: me.total_points })
-                })
+                .then(data => setTopThree(data.slice(0, 3)))
                 .catch(() => {})
             getTournamentSettings()
                 .then(s => setPredictionsLocked(s.predictions_locked))
@@ -111,16 +106,9 @@ export default function HomePage() {
 
             <section className={`${styles.wingetsContainer} ${!showPodium ? styles.fullWidth : ''}`}>
                 {showPodium && (
-                    <div className={styles.podiumWidget}>
+                    <div className={styles.podiumWidget} onClick={() => navigateTo('/leaderboard')}>
                         <Podium users={topThree} onSelect={() => navigateTo('/leaderboard')} />
-                        {myStats && (
-                            <div className={styles.myStatsCard} onClick={() => navigateTo('/leaderboard')}>
-                                <span className={styles.myStatsName}>{user.display_name}</span>
-                                <span className={styles.myStatsRank}>#{myStats.rank}</span>
-                                <span className={styles.myStatsSep}>·</span>
-                                <span className={styles.myStatsPoints}>{myStats.points} pts</span>
-                            </div>
-                        )}
+                        <span className={styles.podiumLink}>View leaderboard →</span>
                     </div>
                 )}
                 <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>
