@@ -49,51 +49,6 @@ main > section > img{
 	pointer-events: none;
 }
 
-.myStatsCard {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.6rem 1rem;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    cursor: pointer;
-    transition: border-color 0.2s;
-
-    &:hover {
-        border-color: var(--primary-light);
-    }
-}
-
-.myStatsName {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.myStatsRank {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.myStatsSep {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-}
-
-.myStatsPoints {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-
 .matchPred {
     display: block;
     font-size: 0.7rem;
