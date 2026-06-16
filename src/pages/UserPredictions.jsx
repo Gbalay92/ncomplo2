@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
-import { getUserPredictions, getUserBracket } from '../api/users.js'
+import { getUserPredictions, getUserBracket, getUserProfile } from '../api/users.js'
 import { MatchCard } from '../components/MatchCard.jsx'
 import { BracketMatchCard } from '../components/BracketMatchCard.jsx'
 import styles from './UserPredictions.module.css'
@@ -14,20 +14,39 @@ const BRACKET_STAGES = [
   { key: 'final',         label: 'Final' },
 ]
 
+function localDateKey(dateStr) {
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function formatDateLabel(key) {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+}
 
 export default function UserPredictions() {
   const { userId } = useParams()
   const location = useLocation()
-  const displayName = location.state?.displayName
+
+  const [displayName, setDisplayName] = useState(location.state?.displayName ?? null)
+  const [firstName, setFirstName] = useState(location.state?.firstName ?? null)
+  const [lastName, setLastName] = useState(location.state?.lastName ?? null)
 
   const [groupedMatches, setGroupedMatches] = useState(null)
+  const [allGroupMatches, setAllGroupMatches] = useState([])
   const [bracket, setBracket] = useState(null)
   const [activeTab, setActiveTab] = useState(null)
+  const [groupView, setGroupView] = useState('date')
+  const [activeDate, setActiveDate] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    Promise.all([getUserPredictions(userId), getUserBracket(userId)])
+    const profilePromise = (!location.state?.displayName)
+      ? getUserProfile(userId).then(p => { setDisplayName(p.display_name); setFirstName(p.first_name); setLastName(p.last_name) }).catch(() => {})
+      : Promise.resolve()
+
+    const dataPromise = Promise.all([getUserPredictions(userId), getUserBracket(userId)])
       .then(([preds, brkt]) => {
         if (preds === null) {
           setError('Predictions are not available yet')
@@ -41,12 +60,20 @@ export default function UserPredictions() {
           grouped[key].push(m)
         }
         setGroupedMatches(grouped)
+        setAllGroupMatches(preds)
         const firstGroup = Object.keys(grouped)[0]
         if (firstGroup) setActiveTab(firstGroup)
+
+        const dateKeys = [...new Set(preds.map(m => localDateKey(m.match_date)))].sort()
+        const todayKey = localDateKey(new Date().toISOString())
+        setActiveDate(dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1])
+
         setBracket(brkt ?? [])
       })
       .catch(() => setError('Error loading predictions'))
       .finally(() => setLoading(false))
+
+    Promise.all([profilePromise, dataPromise])
   }, [userId])
 
   if (loading) return <div className={styles.page}><p>Loading…</p></div>
@@ -56,68 +83,128 @@ export default function UserPredictions() {
   const isBracketTab = BRACKET_STAGES.some(s => s.key === activeTab)
   const isGroupTab = !isBracketTab
 
-  const allTabs = [
-    ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' })),
-    ...BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' })),
-  ]
+  // Desktop group tabs navigation
+  const groupTabsList = groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' }))
+  const knockoutTabsList = BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' }))
+  const allTabs = [...groupTabsList, ...knockoutTabsList]
   const activeIndex = allTabs.findIndex(t => t.key === activeTab)
   const activeTabMeta = allTabs[activeIndex]
   const paginationLabel = activeTabMeta ? `${activeTabMeta.section} · ${activeTabMeta.label}` : ''
 
-  const activeGroupMatches = isGroupTab ? (groupedMatches[activeTab] ?? []) : []
+  // Date view data
+  const groupedByDate = {}
+  for (const m of allGroupMatches) {
+    const key = localDateKey(m.match_date)
+    if (!groupedByDate[key]) groupedByDate[key] = []
+    groupedByDate[key].push(m)
+  }
+  const dateKeys = Object.keys(groupedByDate).sort()
+  const dateIdx = activeDate ? dateKeys.indexOf(activeDate) : 0
+
+  const activeGroupMatches = groupView === 'group'
+    ? (isGroupTab ? (groupedMatches[activeTab] ?? []) : [])
+    : (groupedByDate[activeDate] ?? [])
+
+  const showGroupContent = groupView === 'date' || isGroupTab
   const activeBracketSlots = isBracketTab ? bracket.filter(s => s.stage === activeTab) : []
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <Link to="/leaderboard" className={styles.backLink}>← Leaderboard</Link>
-        <h1 className={styles.title}>{displayName ?? 'Predictions'}</h1>
+        <div className={styles.titleRow}>
+          <div>
+            <h1 className={styles.title}>{displayName ?? 'Predictions'}</h1>
+            {firstName && <p className={styles.realName}>{firstName} {lastName}</p>}
+          </div>
+          <div className={styles.viewToggle}>
+            <button
+              className={groupView === 'group' ? styles.toggleActive : ''}
+              onClick={() => setGroupView('group')}
+            >Group</button>
+            <button
+              className={groupView === 'date' ? styles.toggleActive : ''}
+              onClick={() => setGroupView('date')}
+            >Date</button>
+          </div>
+        </div>
       </header>
 
       <nav className={navStyles.stageNav}>
-        <div className={navStyles.desktopNav}>
-          <div className={navStyles.stageRow}>
-            <span className={navStyles.stageLabel}>Groups</span>
-            {groupNames.map(name => (
+        {groupView === 'group' ? (
+          <>
+            <div className={navStyles.desktopNav}>
+              <div className={navStyles.stageRow}>
+                <span className={navStyles.stageLabel}>Groups</span>
+                {groupNames.map(name => (
+                  <button
+                    key={name}
+                    className={activeTab === name ? navStyles.active : ''}
+                    onClick={() => setActiveTab(name)}
+                  >
+                    {name.replace('Group ', '')}
+                  </button>
+                ))}
+              </div>
+              <div className={navStyles.stageRow}>
+                <span className={navStyles.stageLabel}>Knockout</span>
+                {BRACKET_STAGES.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={activeTab === key ? navStyles.active : ''}
+                    onClick={() => setActiveTab(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={navStyles.mobilePager}>
               <button
-                key={name}
-                className={activeTab === name ? navStyles.active : ''}
-                onClick={() => setActiveTab(name)}
-              >
-                {name.replace('Group ', '')}
-              </button>
-            ))}
-          </div>
-          <div className={navStyles.stageRow}>
-            <span className={navStyles.stageLabel}>Knockout</span>
-            {BRACKET_STAGES.map(({ key, label }) => (
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
+                disabled={activeIndex === 0}
+              >◀</button>
+              <span className={navStyles.pagerLabel}>{paginationLabel}</span>
               <button
-                key={key}
-                className={activeTab === key ? navStyles.active : ''}
-                onClick={() => setActiveTab(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={navStyles.mobilePager}>
-          <button
-            className={navStyles.pagerBtn}
-            onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
-            disabled={activeIndex === 0}
-          >◀</button>
-          <span className={navStyles.pagerLabel}>{paginationLabel}</span>
-          <button
-            className={navStyles.pagerBtn}
-            onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
-            disabled={activeIndex === allTabs.length - 1}
-          >▶</button>
-        </div>
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
+                disabled={activeIndex === allTabs.length - 1}
+              >▶</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={navStyles.mobilePager} style={{ display: 'flex' }}>
+              <button
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveDate(dateKeys[dateIdx - 1])}
+                disabled={dateIdx <= 0}
+              >‹</button>
+              <span className={navStyles.pagerLabel}>{activeDate ? formatDateLabel(activeDate) : ''}</span>
+              <button
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveDate(dateKeys[dateIdx + 1])}
+                disabled={dateIdx >= dateKeys.length - 1}
+              >›</button>
+            </div>
+            <div className={navStyles.stageRow}>
+              <span className={navStyles.stageLabel}>Knockout</span>
+              {BRACKET_STAGES.map(({ key, label }) => (
+                <button
+                  key={key}
+                  className={activeTab === key ? navStyles.active : ''}
+                  onClick={() => setActiveTab(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </nav>
 
-      {isGroupTab && (
+      {showGroupContent && !isBracketTab && (
         <div className={styles.matchList}>
           {activeGroupMatches.map(m => (
             <MatchCard
