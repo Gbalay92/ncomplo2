@@ -21,6 +21,12 @@ export async function getUserPredictions(userId) {
   return res.json()
 }
 
+export async function getUserProfile(userId) {
+  const res = await get(`/users/${userId}/profile`)
+  if (!res.ok) throw new Error('Failed to fetch user profile')
+  return res.json()
+}
+
 export async function getUserBracket(userId) {
   const res = await get(`/users/${userId}/bracket`)
   if (res.status === 403) return null
