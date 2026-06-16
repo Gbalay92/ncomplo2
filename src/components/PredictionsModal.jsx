@@ -58,11 +58,11 @@ export function PredictionsModal({ user, onClose }) {
           {loading ? (
             <p className={styles.msg}>Cargando…</p>
           ) : !predictions || predictions.length === 0 ? (
-            <p className={styles.msg}>Sin predicciones disponibles</p>
+            <p className={styles.msg}>No predictions available</p>
           ) : (
             <>
               <p className={styles.sectionLabel}>
-                {showingNext ? 'Próximo partido' : 'Partidos de hoy'}
+                {showingNext ? 'Next match' : "Today's matches"}
               </p>
               <div className={styles.matchList}>
                 {predictions.map(m => (
@@ -80,7 +80,7 @@ export function PredictionsModal({ user, onClose }) {
             className={styles.fullLink}
             onClick={onClose}
           >
-            Ver predicciones completas →
+            View full predictions →
           </Link>
         </footer>
       </div>

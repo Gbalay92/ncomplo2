@@ -30,7 +30,7 @@ export default function UserPredictions() {
     Promise.all([getUserPredictions(userId), getUserBracket(userId)])
       .then(([preds, brkt]) => {
         if (preds === null) {
-          setError('Las predicciones aún no están disponibles')
+          setError('Predictions are not available yet')
           return
         }
 
@@ -45,11 +45,11 @@ export default function UserPredictions() {
         if (firstGroup) setActiveTab(firstGroup)
         setBracket(brkt ?? [])
       })
-      .catch(() => setError('Error al cargar las predicciones'))
+      .catch(() => setError('Error loading predictions'))
       .finally(() => setLoading(false))
   }, [userId])
 
-  if (loading) return <div className={styles.page}><p>Cargando…</p></div>
+  if (loading) return <div className={styles.page}><p>Loading…</p></div>
   if (error) return <div className={styles.page}><p className={styles.errorMsg}>{error}</p></div>
 
   const groupNames = Object.keys(groupedMatches)
@@ -57,7 +57,7 @@ export default function UserPredictions() {
   const isGroupTab = !isBracketTab
 
   const allTabs = [
-    ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Grupos' })),
+    ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' })),
     ...BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' })),
   ]
   const activeIndex = allTabs.findIndex(t => t.key === activeTab)
@@ -71,13 +71,13 @@ export default function UserPredictions() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link to="/leaderboard" className={styles.backLink}>← Leaderboard</Link>
-        <h1 className={styles.title}>{displayName ?? 'Predicciones'}</h1>
+        <h1 className={styles.title}>{displayName ?? 'Predictions'}</h1>
       </header>
 
       <nav className={navStyles.stageNav}>
         <div className={navStyles.desktopNav}>
           <div className={navStyles.stageRow}>
-            <span className={navStyles.stageLabel}>Grupos</span>
+            <span className={navStyles.stageLabel}>Groups</span>
             {groupNames.map(name => (
               <button
                 key={name}

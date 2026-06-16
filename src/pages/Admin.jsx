@@ -14,7 +14,7 @@ function localDateKey(dateStr) {
 
 function formatDateLabel(key) {
     const [y, m, d] = key.split('-').map(Number)
-    return new Date(y, m - 1, d).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
+    return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 export default function Admin() {
@@ -143,11 +143,11 @@ export default function Admin() {
                                 <button
                                     className={groupView === 'group' ? styles.toggleActive : ''}
                                     onClick={() => setGroupView('group')}
-                                >Grupo</button>
+                                >Group</button>
                                 <button
                                     className={groupView === 'date' ? styles.toggleActive : ''}
                                     onClick={() => setGroupView('date')}
-                                >Fecha</button>
+                                >Date</button>
                             </div>
                         </div>
                         <p className={styles.progress}>{filledCount} / {allMatches.length} results entered</p>
@@ -193,7 +193,7 @@ export default function Admin() {
                                     onToggle={() => setExpandedId(prev => prev === match.id ? null : match.id)}
                                     onSave={handleSave}
                                     subtitle={groupView === 'date'
-                                        ? `Grupo ${match.group_name} · ${new Date(match.match_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+                                        ? `Group ${match.group_name} · ${new Date(match.match_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`
                                         : undefined}
                                 />
                             ))}

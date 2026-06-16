@@ -60,7 +60,7 @@ export default function HomePage() {
 
     const showPodium = isLoggedIn && topThree.length > 0
 
-    const matchSectionTitle = todayData?.isToday ? 'Partidos de hoy' : 'Próximo partido'
+    const matchSectionTitle = todayData?.isToday ? "Today's matches" : 'Next match'
     const matches = todayData?.matches ?? []
 
     let btnLabel, btnAction
