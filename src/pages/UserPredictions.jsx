@@ -196,33 +196,29 @@ export default function UserPredictions() {
             </div>
           </>
         ) : (
-          <>
-            <div className={navStyles.mobilePager} style={{ display: 'flex' }}>
+          <div className={styles.dateModeNav}>
+            <button
+              className={navStyles.pagerBtn}
+              onClick={() => setActiveDate(dateKeys[dateIdx - 1])}
+              disabled={dateIdx <= 0}
+            >‹</button>
+            <span className={styles.dateLabel}>{activeDate ? formatDateLabel(activeDate) : ''}</span>
+            <button
+              className={navStyles.pagerBtn}
+              onClick={() => setActiveDate(dateKeys[dateIdx + 1])}
+              disabled={dateIdx >= dateKeys.length - 1}
+            >›</button>
+            <span className={styles.dateDivider}>·</span>
+            {BRACKET_STAGES.map(({ key, label }) => (
               <button
-                className={navStyles.pagerBtn}
-                onClick={() => setActiveDate(dateKeys[dateIdx - 1])}
-                disabled={dateIdx <= 0}
-              >‹</button>
-              <span className={navStyles.pagerLabel}>{activeDate ? formatDateLabel(activeDate) : ''}</span>
-              <button
-                className={navStyles.pagerBtn}
-                onClick={() => setActiveDate(dateKeys[dateIdx + 1])}
-                disabled={dateIdx >= dateKeys.length - 1}
-              >›</button>
-            </div>
-            <div className={navStyles.stageRow}>
-              <span className={navStyles.stageLabel}>Knockout</span>
-              {BRACKET_STAGES.map(({ key, label }) => (
-                <button
-                  key={key}
-                  className={activeTab === key ? navStyles.active : ''}
-                  onClick={() => setActiveTab(key)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </>
+                key={key}
+                className={`${navStyles.pagerBtn} ${activeTab === key ? styles.knockoutActive : ''}`}
+                onClick={() => setActiveTab(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         )}
       </nav>
 

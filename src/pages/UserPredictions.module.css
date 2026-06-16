@@ -74,6 +74,32 @@
 }
 
 
+.dateModeNav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  flex-wrap: wrap;
+}
+
+.dateLabel {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  min-width: 8rem;
+  text-align: center;
+}
+
+.dateDivider {
+  color: var(--text-muted);
+  margin: 0 0.25rem;
+}
+
+.knockoutActive {
+  background: var(--selected) !important;
+  color: var(--text-primary) !important;
+}
+
 .errorMsg {
   color: var(--text-muted);
   padding: 2rem 1rem;
