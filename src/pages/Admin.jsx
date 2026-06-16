@@ -62,7 +62,8 @@ export default function Admin() {
                 setActiveGroup(Object.keys(grouped)[0])
 
                 const dateKeys = [...new Set(matches.map(m => localDateKey(m.match_date)))].sort()
-                setActiveDate(dateKeys[0])
+                const todayKey = localDateKey(new Date().toISOString())
+                setActiveDate(dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1])
                 setSavedResults(initial)
             })
             .catch(() => setLoadError('Failed to load matches'))
@@ -131,6 +132,7 @@ export default function Admin() {
                     if (!groupedByDate[key]) groupedByDate[key] = []
                     groupedByDate[key].push(m)
                 }
+                const dateIdx = activeDate ? dateKeys.indexOf(activeDate) : 0
                 const visibleMatches = groupView === 'group' ? currentMatches : (groupedByDate[activeDate] ?? [])
 
                 return (
@@ -166,16 +168,18 @@ export default function Admin() {
                             </nav>
                         ) : (
                             <nav className={navStyles.stageNav}>
-                                <div className={navStyles.stageRow}>
-                                    {dateKeys.map(key => (
-                                        <button
-                                            key={key}
-                                            className={activeDate === key ? navStyles.active : ''}
-                                            onClick={() => setActiveDate(key)}
-                                        >
-                                            {formatDateLabel(key)}
-                                        </button>
-                                    ))}
+                                <div className={navStyles.mobilePager} style={{ display: 'flex' }}>
+                                    <button
+                                        className={navStyles.pagerBtn}
+                                        onClick={() => setActiveDate(dateKeys[dateIdx - 1])}
+                                        disabled={dateIdx <= 0}
+                                    >‹</button>
+                                    <span className={navStyles.pagerLabel}>{formatDateLabel(activeDate)}</span>
+                                    <button
+                                        className={navStyles.pagerBtn}
+                                        onClick={() => setActiveDate(dateKeys[dateIdx + 1])}
+                                        disabled={dateIdx >= dateKeys.length - 1}
+                                    >›</button>
                                 </div>
                             </nav>
                         )}
