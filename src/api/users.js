@@ -1,11 +1,5 @@
 import { get } from './client.js'
 
-export async function getUserProfile(userId) {
-  const res = await get(`/users/${userId}/profile`)
-  if (!res.ok) throw new Error('Failed to fetch user profile')
-  return res.json()
-}
-
 export async function getUserTodayPredictions(userId) {
   const now = new Date()
   const localMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
