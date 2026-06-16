@@ -49,6 +49,50 @@ main > section > img{
 	pointer-events: none;
 }
 
+.myStatsBar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.5rem;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+        background: var(--primary-hover);
+    }
+}
+
+.myStatsRank {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.myStatsSep {
+    color: var(--text-muted);
+}
+
+.myStatsPoints {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.myStatsLink {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.matchPred {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
 .wingetsContainer {
 	display: flex;
 	flex-direction: column;
