@@ -10,7 +10,7 @@ function TeamDisplay({ teamName, flagUrl, size = 'sm' }) {
   )
 }
 
-export function AdminMatchCard({ match, isExpanded, onToggle, onSave }) {
+export function AdminMatchCard({ match, isExpanded, onToggle, onSave, subtitle }) {
   const hasResult = match.real_home_goals != null
 
   const [home, setHome] = useState(hasResult ? String(match.real_home_goals) : '')
@@ -53,6 +53,7 @@ export function AdminMatchCard({ match, isExpanded, onToggle, onSave }) {
       className={`${styles.card} ${isSaved ? styles.saved : ''} ${isExpanded ? styles.expanded : ''}`}
       onClick={!isExpanded ? onToggle : undefined}
     >
+      {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
       <div className={styles.compact}>
         <TeamDisplay teamName={match.home_team} flagUrl={match.home_flag} />
         <div className={styles.score}>

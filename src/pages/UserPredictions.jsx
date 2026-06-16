@@ -15,6 +15,15 @@ const BRACKET_STAGES = [
   { key: 'final',         label: 'Final' },
 ]
 
+function localDateKey(dateStr) {
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function formatDateLabel(key) {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+}
 
 export default function UserPredictions() {
   const { userId } = useParams()
@@ -24,9 +33,11 @@ export default function UserPredictions() {
   const [lastName, setLastName] = useState(location.state?.lastName ?? null)
 
   const [groupedMatches, setGroupedMatches] = useState(null)
+  const [allGroupMatches, setAllGroupMatches] = useState([])
   const [bracket, setBracket] = useState(null)
   const [qualifiersMap, setQualifiersMap] = useState({})
   const [activeTab, setActiveTab] = useState(null)
+  const [groupView, setGroupView] = useState('date')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -38,7 +49,7 @@ export default function UserPredictions() {
     Promise.all([getUserPredictions(userId), getUserBracket(userId), getUserQualifiers(userId), profilePromise])
       .then(([preds, brkt, quals]) => {
         if (preds === null) {
-          setError('Las predicciones aún no están disponibles')
+          setError('Predictions are not available yet')
           return
         }
 
@@ -49,9 +60,14 @@ export default function UserPredictions() {
           grouped[key].push(m)
         }
         setGroupedMatches(grouped)
+        setAllGroupMatches(preds)
         const firstGroup = Object.keys(grouped)[0]
-        if (firstGroup) setActiveTab(firstGroup)
         setBracket(brkt ?? [])
+
+        const dateKeys = [...new Set(preds.map(m => localDateKey(m.match_date)))].sort()
+        const todayKey = localDateKey(new Date().toISOString())
+        const defaultDate = dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1]
+        setActiveTab(defaultDate ?? firstGroup)
 
         // Build qualifiers map same as BracketPrediction
         const map = {}
@@ -78,11 +94,11 @@ export default function UserPredictions() {
         }
         setQualifiersMap(map)
       })
-      .catch(() => setError('Error al cargar las predicciones'))
+      .catch(() => setError('Error loading predictions'))
       .finally(() => setLoading(false))
   }, [userId])
 
-  if (loading) return <div className={styles.page}><p>Cargando…</p></div>
+  if (loading) return <div className={styles.page}><p>Loading…</p></div>
   if (error) return <div className={styles.page}><p className={styles.errorMsg}>{error}</p></div>
 
   const groupNames = Object.keys(groupedMatches)
@@ -90,68 +106,130 @@ export default function UserPredictions() {
   const isGroupTab = !isBracketTab
 
   const allTabs = [
-    ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Grupos' })),
+    ...groupNames.map(name => ({ key: name, label: name.replace('Group ', ''), section: 'Groups' })),
     ...BRACKET_STAGES.map(s => ({ key: s.key, label: s.label, section: 'Knockout' })),
   ]
   const activeIndex = allTabs.findIndex(t => t.key === activeTab)
   const activeTabMeta = allTabs[activeIndex]
   const paginationLabel = activeTabMeta ? `${activeTabMeta.section} · ${activeTabMeta.label}` : ''
 
-  const activeGroupMatches = isGroupTab ? (groupedMatches[activeTab] ?? []) : []
+  const groupedByDate = {}
+  for (const m of allGroupMatches) {
+    const key = localDateKey(m.match_date)
+    if (!groupedByDate[key]) groupedByDate[key] = []
+    groupedByDate[key].push(m)
+  }
+  const dateKeys = Object.keys(groupedByDate).sort()
+  const allPages = [...dateKeys, ...BRACKET_STAGES.map(s => s.key)]
+  const pageIdx = allPages.indexOf(activeTab)
+  const isDatePage = dateKeys.includes(activeTab)
+  const pageLabel = isDatePage
+    ? formatDateLabel(activeTab)
+    : (BRACKET_STAGES.find(s => s.key === activeTab)?.label ?? '')
+
+  const activeGroupMatches = groupView === 'group'
+    ? (isGroupTab ? (groupedMatches[activeTab] ?? []) : [])
+    : (groupedByDate[activeTab] ?? [])
+
+  const showGroupContent = (groupView === 'date' && isDatePage) || (groupView === 'group' && isGroupTab)
   const activeBracketSlots = isBracketTab ? bracket.filter(s => s.stage === activeTab) : []
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <Link to="/leaderboard" className={styles.backLink}>← Leaderboard</Link>
-        <h1 className={styles.title}>{displayName ?? 'Predicciones'}</h1>
-        {firstName && <p className={styles.realName}>{firstName} {lastName}</p>}
+        <div className={styles.titleRow}>
+          <div>
+            <h1 className={styles.title}>{displayName ?? 'Predictions'}</h1>
+            {firstName && <p className={styles.realName}>{firstName} {lastName}</p>}
+          </div>
+          <div className={styles.viewToggle}>
+            <button
+              className={groupView === 'group' ? styles.toggleActive : ''}
+              onClick={() => {
+                if (groupView !== 'group') {
+                  const firstGroup = Object.keys(groupedMatches)[0]
+                  if (firstGroup) setActiveTab(firstGroup)
+                  setGroupView('group')
+                }
+              }}
+            >Group</button>
+            <button
+              className={groupView === 'date' ? styles.toggleActive : ''}
+              onClick={() => {
+                if (groupView !== 'date') {
+                  const todayKey = localDateKey(new Date().toISOString())
+                  const defaultDate = dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1]
+                  if (defaultDate) setActiveTab(defaultDate)
+                  setGroupView('date')
+                }
+              }}
+            >Date</button>
+          </div>
+        </div>
       </header>
 
       <nav className={navStyles.stageNav}>
-        <div className={navStyles.desktopNav}>
-          <div className={navStyles.stageRow}>
-            <span className={navStyles.stageLabel}>Grupos</span>
-            {groupNames.map(name => (
+        {groupView === 'group' ? (
+          <>
+            <div className={navStyles.desktopNav}>
+              <div className={navStyles.stageRow}>
+                <span className={navStyles.stageLabel}>Groups</span>
+                {groupNames.map(name => (
+                  <button
+                    key={name}
+                    className={activeTab === name ? navStyles.active : ''}
+                    onClick={() => setActiveTab(name)}
+                  >
+                    {name.replace('Group ', '')}
+                  </button>
+                ))}
+              </div>
+              <div className={navStyles.stageRow}>
+                <span className={navStyles.stageLabel}>Knockout</span>
+                {BRACKET_STAGES.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={activeTab === key ? navStyles.active : ''}
+                    onClick={() => setActiveTab(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={navStyles.mobilePager}>
               <button
-                key={name}
-                className={activeTab === name ? navStyles.active : ''}
-                onClick={() => setActiveTab(name)}
-              >
-                {name.replace('Group ', '')}
-              </button>
-            ))}
-          </div>
-          <div className={navStyles.stageRow}>
-            <span className={navStyles.stageLabel}>Knockout</span>
-            {BRACKET_STAGES.map(({ key, label }) => (
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
+                disabled={activeIndex === 0}
+              >◀</button>
+              <span className={navStyles.pagerLabel}>{paginationLabel}</span>
               <button
-                key={key}
-                className={activeTab === key ? navStyles.active : ''}
-                onClick={() => setActiveTab(key)}
-              >
-                {label}
-              </button>
-            ))}
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
+                disabled={activeIndex === allTabs.length - 1}
+              >▶</button>
+            </div>
+          </>
+        ) : (
+          <div className={navStyles.mobilePager} style={{ display: 'flex' }}>
+            <button
+              className={navStyles.pagerBtn}
+              onClick={() => setActiveTab(allPages[pageIdx - 1])}
+              disabled={pageIdx <= 0}
+            >‹</button>
+            <span className={navStyles.pagerLabel}>{pageLabel}</span>
+            <button
+              className={navStyles.pagerBtn}
+              onClick={() => setActiveTab(allPages[pageIdx + 1])}
+              disabled={pageIdx >= allPages.length - 1}
+            >›</button>
           </div>
-        </div>
-
-        <div className={navStyles.mobilePager}>
-          <button
-            className={navStyles.pagerBtn}
-            onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
-            disabled={activeIndex === 0}
-          >◀</button>
-          <span className={navStyles.pagerLabel}>{paginationLabel}</span>
-          <button
-            className={navStyles.pagerBtn}
-            onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
-            disabled={activeIndex === allTabs.length - 1}
-          >▶</button>
-        </div>
+        )}
       </nav>
 
-      {isGroupTab && (
+      {showGroupContent && !isBracketTab && (
         <div className={styles.matchList}>
           {activeGroupMatches.map(m => (
             <MatchCard
@@ -159,6 +237,7 @@ export default function UserPredictions() {
               match={m}
               value={{ home: String(m.pred_home_goals ?? ''), away: String(m.pred_away_goals ?? '') }}
               readOnly={true}
+              subtitle={groupView === 'date' ? `Group ${m.group_name} · ${new Date(m.match_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : undefined}
             />
           ))}
         </div>
@@ -167,7 +246,6 @@ export default function UserPredictions() {
       {isBracketTab && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem' }}>
           {activeBracketSlots.map(slot => {
-            const slotsByLabel = Object.fromEntries(bracket.map(s => [s.slot_label, s]))
             const picksByLabel = Object.fromEntries(
               bracket
                 .filter(s => s.pred_winner_id)

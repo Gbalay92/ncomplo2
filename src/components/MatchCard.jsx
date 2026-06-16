@@ -18,7 +18,7 @@ function formatMatchDate(dateStr) {
   return { datePart, timePart }
 }
 
-export function MatchCard({ match, readOnly = false, value, onChange, incomplete = false }) {
+export function MatchCard({ match, readOnly = false, value, onChange, incomplete = false, subtitle }) {
   const { datePart, timePart } = match.match_date ? formatMatchDate(match.match_date) : {}
 
   const home = value?.home ?? ''
@@ -29,6 +29,7 @@ export function MatchCard({ match, readOnly = false, value, onChange, incomplete
 
   return (
     <article className={`${styles.matchCard} ${incomplete ? styles.matchCardIncomplete : ''}`}>
+      {subtitle && <p className={styles.matchSubtitle}>{subtitle}</p>}
       <section className={styles.matchInfo}>
         <TeamDisplay teamName={match.home_team} flagUrl={match.home_flag} />
 

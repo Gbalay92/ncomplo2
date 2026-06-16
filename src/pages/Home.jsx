@@ -60,7 +60,7 @@ export default function HomePage() {
 
     const showPodium = isLoggedIn && topThree.length > 0
 
-    const matchSectionTitle = todayData?.isToday ? 'Partidos de hoy' : 'Próximo partido'
+    const matchSectionTitle = todayData?.isToday ? "Today's matches" : 'Next match'
     const matches = todayData?.matches ?? []
 
     let btnLabel, btnAction
@@ -93,7 +93,7 @@ export default function HomePage() {
                 {showPodium && (
                     <div className={styles.podiumWidget} onClick={() => navigateTo('/leaderboard')}>
                         <Podium users={topThree} onSelect={() => navigateTo('/leaderboard')} />
-                        <span className={styles.podiumLink}>Ver leaderboard →</span>
+                        <span className={styles.podiumLink}>View leaderboard →</span>
                     </div>
                 )}
                 <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>

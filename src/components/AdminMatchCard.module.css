@@ -23,6 +23,12 @@
     border-color: var(--primary-light);
 }
 
+.subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0 0 0.4rem;
+}
+
 .compact {
     display: flex;
     align-items: center;

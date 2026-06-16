@@ -234,9 +234,9 @@ export default function Prediction() {
 
     if (unfilledGroups > 0 || unpickedSlots > 0) {
       const parts = []
-      if (unfilledGroups > 0) parts.push(`${unfilledGroups} partido${unfilledGroups > 1 ? 's' : ''} de grupos sin resultado`)
-      if (unpickedSlots > 0) parts.push(`${unpickedSlots} cruce${unpickedSlots > 1 ? 's' : ''} sin ganador`)
-      if (!confirm(`${parts.join(' y ')}. ¿Guardar igualmente?`)) {
+      if (unfilledGroups > 0) parts.push(`${unfilledGroups} group match${unfilledGroups > 1 ? 'es' : ''} without a result`)
+      if (unpickedSlots > 0) parts.push(`${unpickedSlots} knockout slot${unpickedSlots > 1 ? 's' : ''} without a pick`)
+      if (!confirm(`${parts.join(' and ')}. Save anyway?`)) {
         setShowWarnings(true)
         return
       }

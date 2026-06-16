@@ -65,17 +65,17 @@ export function UserLeaderboardCard({ user }) {
           {loading ? (
             <p className={styles.expandMsg}>Cargando…</p>
           ) : !predictions || predictions.length === 0 ? (
-            <p className={styles.expandMsg}>Sin predicciones disponibles</p>
+            <p className={styles.expandMsg}>No predictions available</p>
           ) : (
             <>
-              {showingNext && <span className={styles.nextLabel}>Próximo partido</span>}
+              {showingNext && <span className={styles.nextLabel}>Next match</span>}
               <div className={styles.matchList}>
                 {predictions.map(m => (
                   <PredictionMatchRow key={m.id} match={m} />
                 ))}
               </div>
               <Link to={`/user/${user.user_id}`} state={{ displayName: user.display_name, firstName: user.first_name, lastName: user.last_name }} className={styles.fullLink}>
-                Ver predicciones completas →
+                View full predictions →
               </Link>
             </>
           )}
