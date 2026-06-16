@@ -237,6 +237,7 @@ export default function UserPredictions() {
               match={m}
               value={{ home: String(m.pred_home_goals ?? ''), away: String(m.pred_away_goals ?? '') }}
               readOnly={true}
+              subtitle={groupView === 'date' ? `Group ${m.group_name} · ${new Date(m.match_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : undefined}
             />
           ))}
         </div>

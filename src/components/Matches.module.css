@@ -18,6 +18,12 @@
     border: 0.2rem solid #2e5e96;
 }
 
+.matchSubtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
 .matchInfo {
     display: flex;
     justify-content: space-between;
