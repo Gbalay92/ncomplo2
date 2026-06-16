@@ -109,19 +109,18 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {myStats && (
-                <div className={styles.myStatsBar} onClick={() => navigateTo('/leaderboard')}>
-                    <span className={styles.myStatsRank}>#{myStats.rank}</span>
-                    <span className={styles.myStatsSep}>·</span>
-                    <span className={styles.myStatsPoints}>{myStats.points} pts</span>
-                    <span className={styles.myStatsLink}>View leaderboard →</span>
-                </div>
-            )}
-
             <section className={`${styles.wingetsContainer} ${!showPodium ? styles.fullWidth : ''}`}>
                 {showPodium && (
-                    <div className={styles.podiumWidget} onClick={() => navigateTo('/leaderboard')}>
+                    <div className={styles.podiumWidget}>
                         <Podium users={topThree} onSelect={() => navigateTo('/leaderboard')} />
+                        {myStats && (
+                            <div className={styles.myStatsCard} onClick={() => navigateTo('/leaderboard')}>
+                                <span className={styles.myStatsName}>{user.display_name}</span>
+                                <span className={styles.myStatsRank}>#{myStats.rank}</span>
+                                <span className={styles.myStatsSep}>·</span>
+                                <span className={styles.myStatsPoints}>{myStats.points} pts</span>
+                            </div>
+                        )}
                     </div>
                 )}
                 <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>
