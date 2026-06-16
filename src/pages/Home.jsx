@@ -113,10 +113,14 @@ export default function HomePage() {
                 {showPodium && (
                     <div className={styles.podiumWidget} onClick={() => navigateTo('/leaderboard')}>
                         <Podium users={topThree} onSelect={() => navigateTo('/leaderboard')} />
-                        <span className={styles.podiumLink}>View leaderboard →</span>
-                        {myStats && (
-                            <span className={styles.myRank}>{user.display_name} · #{myStats.rank} · {myStats.points} pts</span>
+                        {myStats && myStats.rank > 3 && (
+                            <div className={styles.myPosition}>
+                                <span className={styles.myPositionName}>{user.display_name}</span>
+                                <span className={styles.myPositionRank}>#{myStats.rank}</span>
+                                <span className={styles.myPositionPts}>{myStats.points} pts</span>
+                            </div>
                         )}
+                        <span className={styles.podiumLink}>View leaderboard →</span>
                     </div>
                 )}
                 <article className={`${styles.nextMatchContainer} ${!showPodium ? styles.nextMatchFull : ''}`}>

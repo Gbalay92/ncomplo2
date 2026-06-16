@@ -180,8 +180,33 @@ main > section > img{
 	color: var(--text-primary);
 }
 
-.myRank {
+.myPosition {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.5rem 0.75rem 0;
+	border-top: 1px dashed var(--border);
+	margin-top: 0.25rem;
+}
+
+.myPositionName {
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.myPositionRank {
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: var(--text-muted);
+}
+
+.myPositionPts {
 	font-size: 0.8rem;
 	color: var(--text-muted);
-	margin-top: 0.1rem;
 }
