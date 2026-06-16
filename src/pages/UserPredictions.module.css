@@ -73,6 +73,7 @@
   color: var(--text-primary) !important;
 }
 
+
 .errorMsg {
   color: var(--text-muted);
   padding: 2rem 1rem;
