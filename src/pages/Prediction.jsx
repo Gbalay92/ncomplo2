@@ -18,6 +18,16 @@ const BRACKET_STAGES = [
   { key: 'final',         label: 'Final' },
 ]
 
+function localDateKey(dateStr) {
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function formatDateLabel(key) {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
 function isFilled(v) {
   return v && v.home !== '' && v.away !== '' && !isNaN(parseInt(v.home, 10)) && !isNaN(parseInt(v.away, 10))
 }
@@ -156,6 +166,7 @@ export default function Prediction() {
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
+  const [groupView, setGroupView] = useState('group')
   const [predictionsLocked, setPredictionsLocked] = useState(false)
   const [loadError, setLoadError] = useState(null)
 
@@ -292,7 +303,24 @@ export default function Prediction() {
   const isBracketTab = BRACKET_STAGES.some(s => s.key === activeTab)
   const isGroupTab = !isBracketTab
 
-  const activeGroupMatches = isGroupTab ? (groupedMatches[activeTab] ?? []) : []
+  const allGroupMatches = Object.values(groupedMatches).flat()
+  const groupedByDate = {}
+  for (const m of allGroupMatches) {
+    const key = localDateKey(m.match_date)
+    if (!groupedByDate[key]) groupedByDate[key] = []
+    groupedByDate[key].push(m)
+  }
+  const dateKeys = Object.keys(groupedByDate).sort()
+  const allPages = [...dateKeys, ...BRACKET_STAGES.map(s => s.key)]
+  const pageIdx = allPages.indexOf(activeTab)
+  const isDatePage = dateKeys.includes(activeTab)
+  const pageLabel = isDatePage
+    ? formatDateLabel(activeTab)
+    : (BRACKET_STAGES.find(s => s.key === activeTab)?.label ?? '')
+
+  const activeGroupMatches = groupView === 'group'
+    ? (isGroupTab ? (groupedMatches[activeTab] ?? []) : [])
+    : (groupedByDate[activeTab] ?? [])
   const activeBracketSlots = isBracketTab ? slots.filter(s => s.stage === activeTab) : []
 
   const allTabs = [
@@ -337,51 +365,91 @@ export default function Prediction() {
     <>
       <main style={{ paddingBottom: '5rem' }}>
         <nav className={navStyles.stageNav}>
-          {/* Desktop: two rows */}
-          <div className={navStyles.desktopNav}>
-            <div className={navStyles.stageRow}>
-              <span className={navStyles.stageLabel}>Groups</span>
-              {groupNames.map(name => (
-                <button
-                  key={name}
-                  className={[activeTab === name ? navStyles.active : '', warnedTabs.has(name) ? navStyles.incomplete : ''].join(' ')}
-                  onClick={() => setActiveTab(name)}
-                >
-                  {name.replace('Group ', '')}
-                </button>
-              ))}
-            </div>
-            <div className={navStyles.stageRow}>
-              <span className={navStyles.stageLabel}>Knockout</span>
-              {BRACKET_STAGES.map(({ key, label }) => (
-                <button
-                  key={key}
-                  className={[activeTab === key ? navStyles.active : '', warnedTabs.has(key) ? navStyles.incomplete : ''].join(' ')}
-                  onClick={() => setActiveTab(key)}
-                >
-                  {label}
-                </button>
-              ))}
+          <div className={navStyles.navHeader}>
+            <div className={navStyles.viewToggle}>
+              <button
+                className={groupView === 'group' ? navStyles.toggleActive : ''}
+                onClick={() => {
+                  if (groupView !== 'group') {
+                    setActiveTab(groupNames[0])
+                    setGroupView('group')
+                  }
+                }}
+              >Group</button>
+              <button
+                className={groupView === 'date' ? navStyles.toggleActive : ''}
+                onClick={() => {
+                  if (groupView !== 'date') {
+                    const todayKey = localDateKey(new Date().toISOString())
+                    const defaultDate = dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1]
+                    if (defaultDate) setActiveTab(defaultDate)
+                    setGroupView('date')
+                  }
+                }}
+              >Date</button>
             </div>
           </div>
 
-          {/* Mobile: pagination */}
-          <div className={navStyles.mobilePager}>
-            <button
-              className={navStyles.pagerBtn}
-              onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
-              disabled={activeIndex === 0}
-            >◀</button>
-            <span className={`${navStyles.pagerLabel} ${warnedTabs.has(activeTab) ? navStyles.pagerLabelWarn : ''}`}>{paginationLabel}</span>
-            <button
-              className={navStyles.pagerBtn}
-              onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
-              disabled={activeIndex === allTabs.length - 1}
-            >▶</button>
-          </div>
+          {groupView === 'group' ? (
+            <>
+              <div className={navStyles.desktopNav}>
+                <div className={navStyles.stageRow}>
+                  <span className={navStyles.stageLabel}>Groups</span>
+                  {groupNames.map(name => (
+                    <button
+                      key={name}
+                      className={[activeTab === name ? navStyles.active : '', warnedTabs.has(name) ? navStyles.incomplete : ''].join(' ')}
+                      onClick={() => setActiveTab(name)}
+                    >
+                      {name.replace('Group ', '')}
+                    </button>
+                  ))}
+                </div>
+                <div className={navStyles.stageRow}>
+                  <span className={navStyles.stageLabel}>Knockout</span>
+                  {BRACKET_STAGES.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      className={[activeTab === key ? navStyles.active : '', warnedTabs.has(key) ? navStyles.incomplete : ''].join(' ')}
+                      onClick={() => setActiveTab(key)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className={navStyles.mobilePager}>
+                <button
+                  className={navStyles.pagerBtn}
+                  onClick={() => setActiveTab(allTabs[activeIndex - 1].key)}
+                  disabled={activeIndex === 0}
+                >◀</button>
+                <span className={`${navStyles.pagerLabel} ${warnedTabs.has(activeTab) ? navStyles.pagerLabelWarn : ''}`}>{paginationLabel}</span>
+                <button
+                  className={navStyles.pagerBtn}
+                  onClick={() => setActiveTab(allTabs[activeIndex + 1].key)}
+                  disabled={activeIndex === allTabs.length - 1}
+                >▶</button>
+              </div>
+            </>
+          ) : (
+            <div className={navStyles.mobilePager} style={{ display: 'flex' }}>
+              <button
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveTab(allPages[pageIdx - 1])}
+                disabled={pageIdx <= 0}
+              >‹</button>
+              <span className={navStyles.pagerLabel}>{pageLabel}</span>
+              <button
+                className={navStyles.pagerBtn}
+                onClick={() => setActiveTab(allPages[pageIdx + 1])}
+                disabled={pageIdx >= allPages.length - 1}
+              >›</button>
+            </div>
+          )}
         </nav>
 
-        {isGroupTab && (
+        {((groupView === 'group' && isGroupTab) || (groupView === 'date' && isDatePage)) && (
           <div className={styles.groupLayout}>
             <div className={styles.matchList}>
               {activeGroupMatches.map(match => (
@@ -392,12 +460,15 @@ export default function Prediction() {
                   onChange={handleChange}
                   readOnly={predictionsLocked}
                   incomplete={showWarnings && !isFilled(values[match.id])}
+                  subtitle={groupView === 'date' ? `Group ${match.group_name} · ${new Date(match.match_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : undefined}
                 />
               ))}
             </div>
-            <div className={styles.standingsPanel}>
-              <GroupStandings standings={activeStandings} />
-            </div>
+            {groupView === 'group' && (
+              <div className={styles.standingsPanel}>
+                <GroupStandings standings={activeStandings} />
+              </div>
+            )}
           </div>
         )}
 

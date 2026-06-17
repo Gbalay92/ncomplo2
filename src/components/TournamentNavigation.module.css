@@ -109,3 +109,36 @@
     display: inline;
   }
 }
+
+.navHeader {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.viewToggle {
+  display: flex;
+  gap: 0;
+  border: 0.1rem solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+
+  button {
+    padding: 0.35rem 0.85rem;
+    background: var(--input-bg);
+    color: var(--text-muted);
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s, color 0.2s;
+
+    &:hover {
+      background: var(--primary-hover);
+      color: var(--text-primary);
+    }
+  }
+}
+
+.toggleActive {
+  background: var(--selected) !important;
+  color: var(--text-primary) !important;
+}
