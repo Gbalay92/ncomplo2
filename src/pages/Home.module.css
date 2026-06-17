@@ -69,7 +69,7 @@ main > section > img{
 @media (min-width: 640px) {
 	.wingetsContainer {
 		flex-direction: row;
-		align-items: flex-start;
+		align-items: center;
 	}
 }
 
