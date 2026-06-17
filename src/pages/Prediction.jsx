@@ -168,6 +168,12 @@ export default function Prediction() {
   const [activeTab, setActiveTab] = useState(null)
   const [groupView, setGroupView] = useState('group')
   const [predictionsLocked, setPredictionsLocked] = useState(false)
+
+  useEffect(() => {
+    if (!predictionsLocked && groupView === 'date') {
+      setGroupView('group')
+    }
+  }, [predictionsLocked])
   const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
@@ -365,30 +371,32 @@ export default function Prediction() {
     <>
       <main style={{ paddingBottom: '5rem' }}>
         <nav className={navStyles.stageNav}>
-          <div className={navStyles.navHeader}>
-            <div className={navStyles.viewToggle}>
-              <button
-                className={groupView === 'group' ? navStyles.toggleActive : ''}
-                onClick={() => {
-                  if (groupView !== 'group') {
-                    setActiveTab(groupNames[0])
-                    setGroupView('group')
-                  }
-                }}
-              >Group</button>
-              <button
-                className={groupView === 'date' ? navStyles.toggleActive : ''}
-                onClick={() => {
-                  if (groupView !== 'date') {
-                    const todayKey = localDateKey(new Date().toISOString())
-                    const defaultDate = dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1]
-                    if (defaultDate) setActiveTab(defaultDate)
-                    setGroupView('date')
-                  }
-                }}
-              >Date</button>
+          {predictionsLocked && (
+            <div className={navStyles.navHeader}>
+              <div className={navStyles.viewToggle}>
+                <button
+                  className={groupView === 'group' ? navStyles.toggleActive : ''}
+                  onClick={() => {
+                    if (groupView !== 'group') {
+                      setActiveTab(groupNames[0])
+                      setGroupView('group')
+                    }
+                  }}
+                >Group</button>
+                <button
+                  className={groupView === 'date' ? navStyles.toggleActive : ''}
+                  onClick={() => {
+                    if (groupView !== 'date') {
+                      const todayKey = localDateKey(new Date().toISOString())
+                      const defaultDate = dateKeys.find(k => k >= todayKey) ?? dateKeys[dateKeys.length - 1]
+                      if (defaultDate) setActiveTab(defaultDate)
+                      setGroupView('date')
+                    }
+                  }}
+                >Date</button>
+              </div>
             </div>
-          </div>
+          )}
 
           {groupView === 'group' ? (
             <>
