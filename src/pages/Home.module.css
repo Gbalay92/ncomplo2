@@ -69,7 +69,11 @@ main > section > img{
 @media (min-width: 640px) {
 	.wingetsContainer {
 		flex-direction: row;
-		align-items: center;
+		align-items: flex-start;
+	}
+
+	.podiumWidget {
+		padding-top: 2.75rem;
 	}
 }
 
