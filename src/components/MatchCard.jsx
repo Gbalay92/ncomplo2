@@ -18,14 +18,13 @@ function formatMatchDate(dateStr) {
   return { datePart, timePart }
 }
 
-export function MatchCard({ match, readOnly = false, value, onChange, incomplete = false, subtitle }) {
+export function MatchCard({ match, readOnly = false, value, onChange, incomplete = false, subtitle, points }) {
   const { datePart, timePart } = match.match_date ? formatMatchDate(match.match_date) : {}
 
   const home = value?.home ?? ''
   const away = value?.away ?? ''
 
-  const homeScore = match.real_home_goals ?? null
-  const awayScore = match.real_away_goals ?? null
+  const hasResult = match.real_home_goals != null && match.real_away_goals != null
 
   return (
     <article className={`${styles.matchCard} ${incomplete ? styles.matchCardIncomplete : ''}`}>
@@ -68,12 +67,25 @@ export function MatchCard({ match, readOnly = false, value, onChange, incomplete
         <TeamDisplay teamName={match.away_team} flagUrl={match.away_flag} />
       </section>
 
-      {match.match_date && (
-        <footer className={styles.matchFooter}>
-          <span>{datePart}</span>
-          <span className={styles.matchTime}>{timePart}</span>
-        </footer>
-      )}
+      <footer className={styles.matchFooter}>
+        {match.match_date && (
+          <>
+            <span>{datePart}</span>
+            <span className={styles.matchTime}>{timePart}</span>
+          </>
+        )}
+        {hasResult && (
+          <>
+            {match.match_date && <span className={styles.footerSep}>·</span>}
+            <span className={styles.matchResult}>{match.real_home_goals} – {match.real_away_goals}</span>
+          </>
+        )}
+        {points != null && (
+          <span className={points > 0 ? styles.pointsEarned : styles.pointsZero}>
+            {points > 0 ? `+${points} pts` : '0 pts'}
+          </span>
+        )}
+      </footer>
     </article>
   )
 }
