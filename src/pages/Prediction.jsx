@@ -18,6 +18,15 @@ const BRACKET_STAGES = [
   { key: 'final',         label: 'Final' },
 ]
 
+function scoreMatch(predHome, predAway, realHome, realAway, pointsSign, pointsExact) {
+  if (realHome == null || realAway == null) return null
+  if (predHome == null || predAway == null) return 0
+  if (predHome === realHome && predAway === realAway) return pointsSign + pointsExact
+  const outcome = (h, a) => h > a ? 'home' : a > h ? 'away' : 'draw'
+  if (outcome(predHome, predAway) === outcome(realHome, realAway)) return pointsSign
+  return 0
+}
+
 function localDateKey(dateStr) {
   const d = new Date(dateStr)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -168,6 +177,7 @@ export default function Prediction() {
   const [activeTab, setActiveTab] = useState(null)
   const [groupView, setGroupView] = useState('group')
   const [predictionsLocked, setPredictionsLocked] = useState(false)
+  const [scoringRules, setScoringRules] = useState({ points_sign: 2, points_exact: 1 })
 
   useEffect(() => {
     if (!predictionsLocked && groupView === 'date') {
@@ -181,6 +191,7 @@ export default function Prediction() {
       Promise.all([getMatches(null, 'group'), getMyPredictions(), getTournamentSettings(), getMyBracket()])
         .then(([matches, preds, settings, bracket]) => {
           setPredictionsLocked(settings.predictions_locked)
+          setScoringRules({ points_sign: settings.points_sign ?? 2, points_exact: settings.points_exact ?? 1 })
 
           const grouped = {}
           for (const match of matches) {
@@ -460,17 +471,31 @@ export default function Prediction() {
         {((groupView === 'group' && isGroupTab) || (groupView === 'date' && isDatePage)) && (
           <div className={styles.groupLayout}>
             <div className={styles.matchList}>
-              {activeGroupMatches.map(match => (
-                <MatchCard
-                  key={match.match_number}
-                  match={match}
-                  value={values[match.id]}
-                  onChange={handleChange}
-                  readOnly={predictionsLocked}
-                  incomplete={showWarnings && !isFilled(values[match.id])}
-                  subtitle={groupView === 'date' ? `Group ${match.group_name} · ${new Date(match.match_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : undefined}
-                />
-              ))}
+              {activeGroupMatches.map(match => {
+                const pred = values[match.id]
+                const pts = predictionsLocked
+                  ? scoreMatch(
+                      pred ? parseInt(pred.home, 10) : null,
+                      pred ? parseInt(pred.away, 10) : null,
+                      match.real_home_goals,
+                      match.real_away_goals,
+                      scoringRules.points_sign,
+                      scoringRules.points_exact,
+                    )
+                  : undefined
+                return (
+                  <MatchCard
+                    key={match.match_number}
+                    match={match}
+                    value={pred}
+                    onChange={handleChange}
+                    readOnly={predictionsLocked}
+                    incomplete={showWarnings && !isFilled(pred)}
+                    subtitle={groupView === 'date' ? `Group ${match.group_name} · ${new Date(match.match_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : undefined}
+                    points={pts}
+                  />
+                )
+              })}
             </div>
             {groupView === 'group' && (
               <div className={styles.standingsPanel}>

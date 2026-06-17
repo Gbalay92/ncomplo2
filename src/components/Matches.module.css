@@ -122,3 +122,22 @@
     border-color: #eab308;
 }
 
+.footerSep {
+    color: var(--border);
+}
+
+.matchResult {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.pointsEarned {
+    font-weight: 700;
+    color: var(--primary-light);
+}
+
+.pointsZero {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
