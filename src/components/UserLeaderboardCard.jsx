@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './UserLeaderboardCard.module.css'
 import { getUserTodayPredictions } from '../api/users.js'
+import { FlagImg } from './FlagImg.jsx'
 
 function isToday(dateStr) {
   return new Date(dateStr).toDateString() === new Date().toDateString()
@@ -13,7 +14,7 @@ function PredictionMatchRow({ match }) {
   return (
     <div className={styles.matchRow}>
       <div className={styles.matchTeam}>
-        <img className={styles.matchFlag} src={match.home_flag} alt="" width="20" />
+        <FlagImg className={styles.matchFlag} src={match.home_flag} alt="" width={20} />
         <span className={styles.matchTeamName}>{match.home_team}</span>
       </div>
       <span className={styles.matchScore}>
@@ -21,7 +22,7 @@ function PredictionMatchRow({ match }) {
       </span>
       <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
         <span className={styles.matchTeamName}>{match.away_team}</span>
-        <img className={styles.matchFlag} src={match.away_flag} alt="" width="20" />
+        <FlagImg className={styles.matchFlag} src={match.away_flag} alt="" width={20} />
       </div>
     </div>
   )

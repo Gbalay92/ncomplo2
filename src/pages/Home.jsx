@@ -7,6 +7,7 @@ import { getLeaderboard } from '../api/leaderboard.js'
 import { getTodayMatches } from '../api/matches.js'
 import { getTournamentSettings } from '../api/tournament.js'
 import { getUserTodayPredictions } from '../api/users.js'
+import { FlagImg } from '../components/FlagImg.jsx'
 
 function formatDateTime(dateStr) {
     const date = new Date(dateStr)
@@ -23,7 +24,7 @@ function CompactMatchRow({ match, prediction }) {
     return (
         <div className={styles.matchRow}>
             <div className={styles.matchTeam}>
-                <img src={match.home_flag} alt="" width="24" />
+                <FlagImg src={match.home_flag} alt="" width={24} />
                 <span>{match.home_team}</span>
             </div>
             <div className={styles.matchCenter}>
@@ -37,7 +38,7 @@ function CompactMatchRow({ match, prediction }) {
             </div>
             <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
                 <span>{match.away_team}</span>
-                <img src={match.away_flag} alt="" width="24" />
+                <FlagImg src={match.away_flag} alt="" width={24} />
             </div>
         </div>
     )

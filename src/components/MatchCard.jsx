@@ -1,10 +1,11 @@
 import styles from './Matches.module.css'
+import { FlagImg } from './FlagImg.jsx'
 
 function TeamDisplay({ teamName, flagUrl }) {
   return (
     <div className={styles.countryDisplay}>
       <article className={styles.flagContainer}>
-        <img src={flagUrl} width="40" alt={teamName} />
+        <FlagImg src={flagUrl} width={40} alt={teamName} />
       </article>
       <span>{teamName}</span>
     </div>

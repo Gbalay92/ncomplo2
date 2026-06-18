@@ -1,4 +1,5 @@
 import styles from './GroupStandings.module.css'
+import { FlagImg } from './FlagImg.jsx'
 
 export function GroupStandings({ standings }) {
   return (
@@ -27,7 +28,7 @@ export function GroupStandings({ standings }) {
               <tr key={team.team_id} className={marker}>
                 <td className={styles.pos}>{pos}</td>
                 <td className={styles.teamCol}>
-                  {team.flag_url && <img src={team.flag_url} width="20" alt={team.name} />}
+                  <FlagImg src={team.flag_url} width={20} alt={team.name} />
                   <span>{team.name}</span>
                 </td>
                 <td>{played}</td>

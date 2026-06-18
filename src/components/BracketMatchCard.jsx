@@ -1,4 +1,5 @@
 import styles from './BracketMatchCard.module.css'
+import { FlagImg } from './FlagImg.jsx'
 
 function TeamOption({ team, selected, onClick }) {
   const canPick = !!team
@@ -11,7 +12,7 @@ function TeamOption({ team, selected, onClick }) {
     >
       {team ? (
         <>
-          <img src={team.flag_url} width="32" alt={team.name} />
+          <FlagImg src={team.flag_url} width={32} alt={team.name} />
           <span>{team.name}</span>
         </>
       ) : (
