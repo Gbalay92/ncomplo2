@@ -20,24 +20,28 @@ function formatDateTime(dateStr) {
 
 function CompactMatchRow({ match, prediction }) {
     const hasResult = match.real_home_goals != null && match.real_away_goals != null
-    const hasPred = prediction?.pred_home_goals != null && prediction?.pred_away_goals != null
+    const hasScorePred = prediction?.pred_home_goals != null && prediction?.pred_away_goals != null
+    const hasWinnerPred = prediction?.pred_winner_name != null
     return (
         <div className={styles.matchRow}>
             <div className={styles.matchTeam}>
                 <FlagImg src={match.home_flag} alt="" width={24} />
-                <span>{match.home_team}</span>
+                <span>{match.home_team ?? 'TBD'}</span>
             </div>
             <div className={styles.matchCenter}>
                 {hasResult
                     ? <span className={styles.matchScore}>{match.real_home_goals} – {match.real_away_goals}</span>
                     : <span className={styles.matchTime}>{formatDateTime(match.match_date)}</span>
                 }
-                {hasPred && (
+                {hasScorePred && (
                     <span className={styles.matchPred}>{prediction.pred_home_goals}–{prediction.pred_away_goals}</span>
+                )}
+                {hasWinnerPred && (
+                    <span className={styles.matchPred}>→ {prediction.pred_winner_name}</span>
                 )}
             </div>
             <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
-                <span>{match.away_team}</span>
+                <span>{match.away_team ?? 'TBD'}</span>
                 <FlagImg src={match.away_flag} alt="" width={24} />
             </div>
         </div>
