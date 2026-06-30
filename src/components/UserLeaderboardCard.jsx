@@ -9,6 +9,25 @@ function isToday(dateStr) {
 }
 
 function PredictionMatchRow({ match }) {
+  if (match.is_knockout) {
+    const hasPred = match.pred_winner_name != null
+    return (
+      <div className={styles.matchRow}>
+        <div className={styles.matchTeam}>
+          {match.home_flag && <FlagImg className={styles.matchFlag} src={match.home_flag} alt="" width={20} />}
+          <span className={styles.matchTeamName}>{match.home_team ?? 'TBD'}</span>
+        </div>
+        <span className={styles.matchScore}>
+          {hasPred ? `→ ${match.pred_winner_name}` : '–'}
+        </span>
+        <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
+          <span className={styles.matchTeamName}>{match.away_team ?? 'TBD'}</span>
+          {match.away_flag && <FlagImg className={styles.matchFlag} src={match.away_flag} alt="" width={20} />}
+        </div>
+      </div>
+    )
+  }
+
   const hasPred = match.pred_home_goals != null && match.pred_away_goals != null
 
   return (
