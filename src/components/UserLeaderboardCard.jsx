@@ -1,33 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './UserLeaderboardCard.module.css'
-import { getUserTodayPredictions } from '../api/users.js'
+import { getUserTodayPredictions, getUserBracket } from '../api/users.js'
 import { FlagImg } from './FlagImg.jsx'
+import { nextStageLabel } from '../utils/knockoutStage.js'
 
 function isToday(dateStr) {
   return new Date(dateStr).toDateString() === new Date().toDateString()
 }
 
 function PredictionMatchRow({ match }) {
-  if (match.is_knockout) {
-    const hasPred = match.pred_winner_name != null
-    return (
-      <div className={styles.matchRow}>
-        <div className={styles.matchTeam}>
-          {match.home_flag && <FlagImg className={styles.matchFlag} src={match.home_flag} alt="" width={20} />}
-          <span className={styles.matchTeamName}>{match.home_team ?? 'TBD'}</span>
-        </div>
-        <span className={styles.matchScore}>
-          {hasPred ? `→ ${match.pred_winner_name}` : '–'}
-        </span>
-        <div className={`${styles.matchTeam} ${styles.matchTeamRight}`}>
-          <span className={styles.matchTeamName}>{match.away_team ?? 'TBD'}</span>
-          {match.away_flag && <FlagImg className={styles.matchFlag} src={match.away_flag} alt="" width={20} />}
-        </div>
-      </div>
-    )
-  }
-
   const hasPred = match.pred_home_goals != null && match.pred_away_goals != null
 
   return (
@@ -47,20 +29,39 @@ function PredictionMatchRow({ match }) {
   )
 }
 
-export function UserLeaderboardCard({ user }) {
+function QualifierChip({ team }) {
+  return (
+    <div className={styles.qualifierChip}>
+      {team.flag_url && <FlagImg className={styles.matchFlag} src={team.flag_url} alt="" width={20} />}
+      <span className={styles.matchTeamName}>{team.name}</span>
+    </div>
+  )
+}
+
+export function UserLeaderboardCard({ user, knockoutStage = null }) {
   const initial = user.display_name?.[0]?.toUpperCase() ?? '?'
   const [expanded, setExpanded] = useState(false)
   const [predictions, setPredictions] = useState(null)
+  const [qualifiers, setQualifiers] = useState(null)
   const [loading, setLoading] = useState(false)
 
   async function handleToggle() {
-    if (!expanded && predictions === null) {
+    if (!expanded && predictions === null && qualifiers === null) {
       setLoading(true)
       try {
-        const data = await getUserTodayPredictions(user.user_id)
-        setPredictions(data ?? [])
+        if (knockoutStage) {
+          const bracket = await getUserBracket(user.user_id)
+          const picks = (bracket ?? [])
+            .filter(s => s.stage === knockoutStage && s.pred_winner_id)
+            .map(s => ({ team_id: s.pred_winner_id, name: s.pred_winner_name, flag_url: s.pred_winner_flag }))
+          setQualifiers(picks)
+        } else {
+          const data = await getUserTodayPredictions(user.user_id)
+          setPredictions(data ?? [])
+        }
       } catch {
-        setPredictions([])
+        if (knockoutStage) setQualifiers([])
+        else setPredictions([])
       } finally {
         setLoading(false)
       }
@@ -69,6 +70,7 @@ export function UserLeaderboardCard({ user }) {
   }
 
   const showingNext = predictions?.length > 0 && !isToday(predictions[0].match_date)
+  const isEmpty = knockoutStage ? !qualifiers || qualifiers.length === 0 : !predictions || predictions.length === 0
 
   return (
     <div className={styles.wrapper}>
@@ -84,8 +86,22 @@ export function UserLeaderboardCard({ user }) {
         <div className={styles.expand}>
           {loading ? (
             <p className={styles.expandMsg}>Cargando…</p>
-          ) : !predictions || predictions.length === 0 ? (
+          ) : isEmpty ? (
             <p className={styles.expandMsg}>No predictions available</p>
+          ) : knockoutStage ? (
+            <>
+              <span className={styles.nextLabel}>
+                {knockoutStage === 'final' ? 'Predicted champion' : `${nextStageLabel(knockoutStage)} qualifiers`}
+              </span>
+              <div className={styles.qualifierGrid}>
+                {qualifiers.map(team => (
+                  <QualifierChip key={team.team_id} team={team} />
+                ))}
+              </div>
+              <Link to={`/user/${user.user_id}`} state={{ displayName: user.display_name, firstName: user.first_name, lastName: user.last_name }} className={styles.fullLink}>
+                View full predictions →
+              </Link>
+            </>
           ) : (
             <>
               {showingNext && <span className={styles.nextLabel}>Next match</span>}

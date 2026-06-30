@@ -160,6 +160,20 @@
   text-align: center;
 }
 
+.qualifierGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1rem;
+}
+
+.qualifierChip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  overflow: hidden;
+}
+
 /* ── Footer ─────────────────────────────────────────────── */
 
 .footer {

@@ -7,16 +7,9 @@ import { MatchCard } from "../components/MatchCard.jsx"
 import { BracketMatchCard } from "../components/BracketMatchCard.jsx"
 import { GroupStandings } from "../components/GroupStandings.jsx"
 import { getFifaThirdAssignment, THIRD_SLOT_KEYS } from '../utils/fifaThirdPlaceTable.js'
+import { BRACKET_STAGES, currentKnockoutStage } from '../utils/knockoutStage.js'
 import styles from './Prediction.module.css'
 import navStyles from '../components/TournamentNavigation.module.css'
-
-const BRACKET_STAGES = [
-  { key: 'round_of_32',   label: 'R32' },
-  { key: 'round_of_16',   label: 'R16' },
-  { key: 'quarter_final', label: 'QF' },
-  { key: 'semi_final',    label: 'SF' },
-  { key: 'final',         label: 'Final' },
-]
 
 function scoreMatch(predHome, predAway, realHome, realAway, pointsSign, pointsExact) {
   if (realHome == null || realAway == null) return null
@@ -35,19 +28,6 @@ function localDateKey(dateStr) {
 function formatDateLabel(key) {
   const [y, m, d] = key.split('-').map(Number)
   return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
-}
-
-// Picks the first knockout stage that hasn't fully finished in reality —
-// i.e. the stage whose predicted picks represent qualifiers to the next round.
-// Once every stage up to the final has a winner, defaults to 'final' (the champion pick).
-function currentKnockoutStage(knockoutMatches) {
-  for (const { key } of BRACKET_STAGES) {
-    const stageMatches = knockoutMatches.filter(m => m.stage === key)
-    const resolvedMatches = stageMatches.filter(m => m.home_team && m.away_team)
-    const allDecided = resolvedMatches.length > 0 && resolvedMatches.every(m => m.winner)
-    if (!allDecided) return key
-  }
-  return 'final'
 }
 
 function isFilled(v) {
