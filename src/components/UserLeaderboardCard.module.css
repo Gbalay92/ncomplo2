@@ -145,6 +145,20 @@
   text-align: center;
 }
 
+.qualifierGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem 0.75rem;
+}
+
+.qualifierChip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  overflow: hidden;
+}
+
 .fullLink {
   align-self: flex-end;
   font-size: 0.8rem;

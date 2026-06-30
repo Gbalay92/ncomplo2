@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './PredictionsModal.module.css'
-import { getUserTodayPredictions } from '../api/users.js'
+import { getUserTodayPredictions, getUserBracket } from '../api/users.js'
+import { nextStageLabel } from '../utils/knockoutStage.js'
 
 const MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
@@ -29,18 +30,42 @@ function PredictionMatchRow({ match }) {
   )
 }
 
-export function PredictionsModal({ user, onClose }) {
+function QualifierChip({ team }) {
+  return (
+    <div className={styles.qualifierChip}>
+      {team.flag_url && <img src={team.flag_url} alt="" width="22" />}
+      <span className={styles.teamName}>{team.name}</span>
+    </div>
+  )
+}
+
+export function PredictionsModal({ user, knockoutStage = null, onClose }) {
   const [predictions, setPredictions] = useState(null)
+  const [qualifiers, setQualifiers] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getUserTodayPredictions(user.user_id)
-      .then(data => setPredictions(data ?? []))
-      .catch(() => setPredictions([]))
-      .finally(() => setLoading(false))
-  }, [user.user_id])
+    setLoading(true)
+    if (knockoutStage) {
+      getUserBracket(user.user_id)
+        .then(bracket => {
+          const picks = (bracket ?? [])
+            .filter(s => s.stage === knockoutStage && s.pred_winner_id)
+            .map(s => ({ team_id: s.pred_winner_id, name: s.pred_winner_name, flag_url: s.pred_winner_flag }))
+          setQualifiers(picks)
+        })
+        .catch(() => setQualifiers([]))
+        .finally(() => setLoading(false))
+    } else {
+      getUserTodayPredictions(user.user_id)
+        .then(data => setPredictions(data ?? []))
+        .catch(() => setPredictions([]))
+        .finally(() => setLoading(false))
+    }
+  }, [user.user_id, knockoutStage])
 
   const showingNext = predictions?.length > 0 && !isToday(predictions[0].match_date)
+  const isEmpty = knockoutStage ? !qualifiers || qualifiers.length === 0 : !predictions || predictions.length === 0
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -57,8 +82,19 @@ export function PredictionsModal({ user, onClose }) {
         <div className={styles.body}>
           {loading ? (
             <p className={styles.msg}>Cargando…</p>
-          ) : !predictions || predictions.length === 0 ? (
+          ) : isEmpty ? (
             <p className={styles.msg}>No predictions available</p>
+          ) : knockoutStage ? (
+            <>
+              <p className={styles.sectionLabel}>
+                {knockoutStage === 'final' ? 'Predicted champion' : `${nextStageLabel(knockoutStage)} qualifiers`}
+              </p>
+              <div className={styles.qualifierGrid}>
+                {qualifiers.map(team => (
+                  <QualifierChip key={team.team_id} team={team} />
+                ))}
+              </div>
+            </>
           ) : (
             <>
               <p className={styles.sectionLabel}>
