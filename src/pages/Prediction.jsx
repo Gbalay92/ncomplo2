@@ -37,6 +37,19 @@ function formatDateLabel(key) {
   return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
+// Picks the first knockout stage that hasn't fully finished in reality —
+// i.e. the stage whose predicted picks represent qualifiers to the next round.
+// Once every stage up to the final has a winner, defaults to 'final' (the champion pick).
+function currentKnockoutStage(knockoutMatches) {
+  for (const { key } of BRACKET_STAGES) {
+    const stageMatches = knockoutMatches.filter(m => m.stage === key)
+    const resolvedMatches = stageMatches.filter(m => m.home_team && m.away_team)
+    const allDecided = resolvedMatches.length > 0 && resolvedMatches.every(m => m.winner)
+    if (!allDecided) return key
+  }
+  return 'final'
+}
+
 function isFilled(v) {
   return v && v.home !== '' && v.away !== '' && !isNaN(parseInt(v.home, 10)) && !isNaN(parseInt(v.away, 10))
 }
@@ -200,7 +213,14 @@ export default function Prediction() {
             grouped[key].push(match)
           }
           setGroupedMatches(grouped)
-          setActiveTab(`Group ${matches[0].group_name}`)
+
+          if (settings.group_stage_locked) {
+            getMatches(null, 'knockout')
+              .then(knockoutMatches => setActiveTab(currentKnockoutStage(knockoutMatches)))
+              .catch(() => setActiveTab(`Group ${matches[0].group_name}`))
+          } else {
+            setActiveTab(`Group ${matches[0].group_name}`)
+          }
 
           const initial = {}
           for (const p of preds) {
