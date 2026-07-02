@@ -74,6 +74,22 @@
   }
 }
 
+.stageScore {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stageScorePts {
+  color: var(--primary-light);
+}
+
 .saveError {
     font-size: 0.85rem;
     color: #e53935;
