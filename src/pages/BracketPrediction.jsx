@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { getMyQualifiers, getMyBracket, saveMyBracket } from '../api/bracket.js'
 import { BracketMatchCard } from '../components/BracketMatchCard.jsx'
 import { getFifaThirdAssignment, THIRD_SLOT_KEYS } from '../utils/fifaThirdPlaceTable.js'
@@ -70,6 +70,7 @@ export default function BracketPrediction() {
   const [activeStage, setActiveStage] = useState('round_of_32')
   const [saveStatus, setSaveStatus] = useState(null)
   const [error, setError] = useState(null)
+  const isSaving = useRef(false)
 
   useEffect(() => {
     Promise.all([getMyQualifiers(), getMyBracket()])
@@ -125,6 +126,9 @@ export default function BracketPrediction() {
   }
 
   async function handleSave() {
+    if (isSaving.current) return
+    isSaving.current = true
+
     const payload = Object.entries(picks).map(([slot_id, team]) => ({
       slot_id,
       pred_winner_id: team.team_id,
@@ -137,6 +141,8 @@ export default function BracketPrediction() {
       setTimeout(() => setSaveStatus(null), 2000)
     } catch {
       setSaveStatus('error')
+    } finally {
+      isSaving.current = false
     }
   }
 
