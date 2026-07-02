@@ -165,7 +165,7 @@ export default function Prediction() {
   const [savedPicks, setSavedPicks] = useState({})
   const [saveStatus, setSaveStatus] = useState(null)
   const [showWarnings, setShowWarnings] = useState(false)
-  const [knockoutScore, setKnockoutScore] = useState(null)
+  const [knockoutScore, setKnockoutScore] = useState({})
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
@@ -509,7 +509,7 @@ export default function Prediction() {
 
         {isBracketTab && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem' }}>
-            {predictionsLocked && knockoutScore != null && (
+            {predictionsLocked && (
               <div className={styles.stageScore}>
                 {activeTab === 'final' ? 'Champion' : `${BRACKET_STAGES.find(s => s.key === activeTab)?.label} qualifiers`}
                 <span className={styles.stageScorePts}>
