@@ -195,14 +195,11 @@ export default function Prediction() {
           }
           setGroupedMatches(grouped)
 
-          if (settings.predictions_locked) {
-            getMyKnockoutScore().then(setKnockoutScore).catch(() => {})
-          }
-
           if (settings.group_stage_locked) {
             getMatches(null, 'knockout')
               .then(knockoutMatches => setActiveTab(currentKnockoutStage(knockoutMatches)))
               .catch(() => setActiveTab(`Group ${matches[0].group_name}`))
+            getMyKnockoutScore().then(setKnockoutScore).catch(() => {})
           } else {
             setActiveTab(`Group ${matches[0].group_name}`)
           }
