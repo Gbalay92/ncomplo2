@@ -17,3 +17,9 @@ export async function saveMyBracket(picks) {
   if (!res.ok) throw new Error('Failed to save bracket')
   return res.json()
 }
+
+export async function getMyKnockoutScore() {
+  const res = await get('/bracket/knockout-score')
+  if (!res.ok) throw new Error('Failed to fetch knockout score')
+  return res.json()
+}

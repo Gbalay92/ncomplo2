@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { getMatches } from "../api/matches.js"
 import { getMyPredictions, savePredictions } from "../api/predictions.js"
-import { getMyBracket, saveMyBracket } from "../api/bracket.js"
+import { getMyBracket, saveMyBracket, getMyKnockoutScore } from "../api/bracket.js"
 import { getTournamentSettings } from "../api/tournament.js"
 import { MatchCard } from "../components/MatchCard.jsx"
 import { BracketMatchCard } from "../components/BracketMatchCard.jsx"
@@ -165,6 +165,7 @@ export default function Prediction() {
   const [savedPicks, setSavedPicks] = useState({})
   const [saveStatus, setSaveStatus] = useState(null)
   const [showWarnings, setShowWarnings] = useState(false)
+  const [knockoutScore, setKnockoutScore] = useState(null)
 
   // ── Navigation ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(null)
@@ -198,6 +199,7 @@ export default function Prediction() {
             getMatches(null, 'knockout')
               .then(knockoutMatches => setActiveTab(currentKnockoutStage(knockoutMatches)))
               .catch(() => setActiveTab(`Group ${matches[0].group_name}`))
+            getMyKnockoutScore().then(setKnockoutScore).catch(() => {})
           } else {
             setActiveTab(`Group ${matches[0].group_name}`)
           }
@@ -507,6 +509,14 @@ export default function Prediction() {
 
         {isBracketTab && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem' }}>
+            {predictionsLocked && knockoutScore != null && (
+              <div className={styles.stageScore}>
+                {activeTab === 'final' ? 'Champion' : `${BRACKET_STAGES.find(s => s.key === activeTab)?.label} qualifiers`}
+                <span className={styles.stageScorePts}>
+                  {knockoutScore[activeTab] != null ? `+${knockoutScore[activeTab]} pts` : '–'}
+                </span>
+              </div>
+            )}
             {activeBracketSlots.map(slot => {
               const { homeTeam, awayTeam } = getTeamsForSlot(slot)
               return (
